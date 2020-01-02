@@ -1,6 +1,6 @@
 const scan = require('./scanner')
 const { Node, isPhantom, isWhitespace, isToken } = require('./structs')
-const { isNull, car, cdr, merge, last, hasOne } = require('./utils')
+const { isNull, car, cdr, merge, last, hasOne, flatten } = require('./utils')
 
 //-------------------------------------------------------------
 //												parser
@@ -313,48 +313,6 @@ const $all = _or(
 //												eval
 //-------------------------------------------------------------
 
-const flatten = (arr) => arr.reduce((a, b) => a.concat(b), [])
-
-const transToNodes = (toks) => {
-  const ctxTransform = (ctx) => {
-    const result = {}
-
-    ctx.forEach((c) => {
-      switch (c) {
-        case 'empthsis':
-          result.fontStyle = 'italic'
-          return
-        case 'strong':
-          result.fontWeight = 'bold'
-          return
-        case 'strike':
-          if (result.textDecoration === undefined) {
-            result.textDecoration = 'line-through'
-          } else {
-            result.textDecoration += ' line-through'
-          }
-          return
-        case 'underline':
-          if (result.textDecoration === undefined) {
-            result.textDecoration = 'underline'
-          } else {
-            result.textDecoration += ' underline'
-          }
-          return
-      }
-    })
-    return result
-  }
-
-  return toks.map((tok) => {
-    const style = ctxTransform(tok.ctx)
-    return {
-      content: tok.elts,
-      style
-    }
-  })
-}
-
 const mdEval = (tok, ctx) => {
   if (
     tok.type === 'token' ||
@@ -379,19 +337,11 @@ const mdEvalList = (toks, ctx) => {
   return flatten(list)
 }
 
-const _testParser = (str) => {
+const parser = (str) => {
   const toks = scan(str)
   const [t] = $all(toks, [])
   const nodes = mdEvalList(t, [])
   return nodes
 }
 
-const mdParser = (str) => {
-  const toks = _testParser(str)
-  return transToNodes(toks)
-}
-
-module.exports = {
-  mdParser,
-  _testParser,
-}
+module.exports = parser

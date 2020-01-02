@@ -1,4 +1,4 @@
-const { _testParser } = require('../src/parser')
+const parser = require('../src/parser')
 
 const mdMap = {
   '_fd_': 'fd[empthsis]',
@@ -62,7 +62,7 @@ const show = (nodes) => {
 
 const test = () => {
   const errKeys = Object.keys(mdMap).filter((key) => {
-    const nodes = _testParser(key)
+    const nodes = parser(key)
     const result = show(nodes)
 
     if (result === mdMap[key]) { return false }
@@ -73,10 +73,11 @@ const test = () => {
 }
 
 const testStr = (str) => {
-  const nodes = _testParser(str)
+  const nodes = parser(str)
   const result = show(nodes)
+  console.log(result)
   return result
 }
 
 test()
-// testStr('_fd_')
+testStr('_fd_')
