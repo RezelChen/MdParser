@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MdParser</title>
+  <style>
+    body {
+      margin: 0 0;
+      padding: 0 0;
+    }
+    .container {
+      margin: 5px 0;
+    }
+    #editor {
+      display: inline-block;
+      box-sizing: border-box;
+      padding: 20px;
+      width: calc(50% - 20px);
+      height: 90vh;
+      margin: 0 20px 0 5px;
+      vertical-align: top;
+      font-size: 14px;
+    }
+    #preview {
+      display: inline-block;
+      box-sizing: border-box;
+      padding: 20px;
+      width: calc(50% - 20px);
+      height: 90vh;
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <h1>Demo of MdParser</h1>
+  <div class="container">
+    <textarea id="editor"></textarea>
+    <div id="preview"></div>
+  </div>
+  <script src="../dist/mdparser.js"></script>
+  <script>
+    const editor = document.getElementById('editor')
+    const preview = document.getElementById('preview')
+    const toHTML = () => preview.innerHTML = mdparser(editor.value)
+    // init
+    editor.onkeyup = toHTML
+    editor.value = '*italic*\n**strong**\n++underline++\n~~strick~~'
+    toHTML()
+  </script>
+</body>
+</html>

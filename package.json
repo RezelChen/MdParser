@@ -5,7 +5,7 @@
   "main": "dist/mdparser.cjs",
   "scripts": {
     "build": "rollup --config",
-    "test": "node ./test"
+    "test": "npm run build && node ./test"
   },
   "repository": {
     "type": "git",

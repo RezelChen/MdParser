@@ -1,46 +1,7 @@
 import parser from './parser'
+import htmlize from './htmlize'
 
-const transToNodes = (toks) => {
-  const ctxTransform = (ctx) => {
-    const result = {}
-
-    ctx.forEach((c) => {
-      switch (c) {
-        case 'empthsis':
-          result.fontStyle = 'italic'
-          return
-        case 'strong':
-          result.fontWeight = 'bold'
-          return
-        case 'strike':
-          if (result.textDecoration === undefined) {
-            result.textDecoration = 'line-through'
-          } else {
-            result.textDecoration += ' line-through'
-          }
-          return
-        case 'underline':
-          if (result.textDecoration === undefined) {
-            result.textDecoration = 'underline'
-          } else {
-            result.textDecoration += ' underline'
-          }
-          return
-      }
-    })
-    return result
-  }
-
-  return toks.map((tok) => {
-    const style = ctxTransform(tok.ctx)
-    return {
-      content: tok.elts,
-      style
-    }
-  })
-}
-
-export default (str = '') => {
-  const toks = parser(str)
-  return transToNodes(toks)
+export default (markdown) => {
+  const node = parser(markdown)
+  return htmlize(node)
 }

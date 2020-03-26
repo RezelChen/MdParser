@@ -329,19 +329,20 @@ const mdEval = (tok, ctx) => {
   }
 }
 
-const mdEvalList = (toks, ctx) => {
-  const list = toks.map((tok) => {
-    return mdEval(tok, ctx)
-  })
+// const mdEvalList = (toks, ctx) => {
+//   const list = toks.map((tok) => {
+//     return mdEval(tok, ctx)
+//   })
 
-  return flatten(list)
-}
+//   return flatten(list)
+// }
 
 const parser = (str) => {
   const toks = scan(str)
   const [t] = $all(toks, [])
-  const nodes = mdEvalList(t, [])
-  return nodes
+  return { type: 'body', elts: t }
+  // const nodes = mdEvalList(t, [])
+  // return nodes
 }
 
 export default parser

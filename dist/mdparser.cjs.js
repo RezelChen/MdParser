@@ -130,8 +130,6 @@ const last = (arr) => {
 
 const hasOne = (arr, item) => arr.indexOf(item) > -1;
 
-const flatten = (arr) => arr.reduce((a, b) => a.concat(b), []);
-
 //-------------------------------------------------------------
 //												parser
 //-------------------------------------------------------------
@@ -439,84 +437,39 @@ const $all = _or(
   _all($whitespace)
 );
 
-//-------------------------------------------------------------
-//												eval
-//-------------------------------------------------------------
+// const mdEvalList = (toks, ctx) => {
+//   const list = toks.map((tok) => {
+//     return mdEval(tok, ctx)
+//   })
 
-const mdEval = (tok, ctx) => {
-  if (
-    tok.type === 'token' ||
-    tok.type === 'whitespace' ||
-    tok.type === 'op'
-  ) {
-    tok.ctx = [...ctx];
-
-    return tok
-  } else {
-    if (tok.type === 'emp2') { tok.type = 'empthsis'; }
-    if (tok.type === 'str2') { tok.type = 'strong'; }
-    return mdEvalList(tok.elts, [...ctx, tok.type])
-  }
-};
-
-const mdEvalList = (toks, ctx) => {
-  const list = toks.map((tok) => {
-    return mdEval(tok, ctx)
-  });
-
-  return flatten(list)
-};
+//   return flatten(list)
+// }
 
 const parser = (str) => {
   const toks = scan(str);
   const [t] = $all(toks, []);
-  const nodes = mdEvalList(t, []);
-  return nodes
+  return { type: 'body', elts: t }
+  // const nodes = mdEvalList(t, [])
+  // return nodes
 };
 
-const transToNodes = (toks) => {
-  const ctxTransform = (ctx) => {
-    const result = {};
-
-    ctx.forEach((c) => {
-      switch (c) {
-        case 'empthsis':
-          result.fontStyle = 'italic';
-          return
-        case 'strong':
-          result.fontWeight = 'bold';
-          return
-        case 'strike':
-          if (result.textDecoration === undefined) {
-            result.textDecoration = 'line-through';
-          } else {
-            result.textDecoration += ' line-through';
-          }
-          return
-        case 'underline':
-          if (result.textDecoration === undefined) {
-            result.textDecoration = 'underline';
-          } else {
-            result.textDecoration += ' underline';
-          }
-          return
-      }
-    });
-    return result
-  };
-
-  return toks.map((tok) => {
-    const style = ctxTransform(tok.ctx);
-    return {
-      content: tok.elts,
-      style
-    }
-  })
+const HTMLIZE_MAP = {
+  'empthsis': (str) => `<i>${str}</i>`,
+  'underline': (str) => `<u>${str}</u>`,
+  'strong': (str) => `<strong>${str}</strong>`,
+  'strike': (str) => `<strike>${str}</strike>`,
 };
 
-var index = (str = '') => {
-  const toks = parser(str);
-  return transToNodes(toks)
+const htmlize = (node) => {
+  const inner = Array.isArray(node.elts) ? node.elts.map(htmlize).reduce((a, b) => a + b, '') : node.elts;
+  const fn = HTMLIZE_MAP[node.type];
+  if (!fn) { return inner }
+  else { return fn(inner) }
+};
+
+var index = (markdown) => {
+  const node = parser(markdown);
+  return htmlize(node)
 };
 
 module.exports = index;
