@@ -1,4 +1,4 @@
-const parser = require('./parser')
+import parser from './parser'
 
 const transToNodes = (toks) => {
   const ctxTransform = (ctx) => {
@@ -40,7 +40,7 @@ const transToNodes = (toks) => {
   })
 }
 
-module.exports = (str) => {
+export default (str = '') => {
   const toks = parser(str)
   return transToNodes(toks)
 }

@@ -1,4 +1,4 @@
-class Node {
+export class Node {
   // args: { type, start, end, elts }
   constructor(...args) {
     this.type = args[0]
@@ -9,9 +9,7 @@ class Node {
   }
 }
 
-exports.isPhantom = (node) => node.type === 'phantom'
-exports.isWhitespace = (node) => node.type === 'whitespace'
-// exports.isOp = (node) => node.type === 'op'
-exports.isToken = (node) => node.type === 'token'
-
-exports.Node = Node
+export const isPhantom = (node) => node.type === 'phantom'
+export const isWhitespace = (node) => node.type === 'whitespace'
+// export const isOp = (node) => node.type === 'op'
+export const isToken = (node) => node.type === 'token'

@@ -1,4 +1,4 @@
-const { Node } = require('./structs')
+import { Node } from './structs'
 
 const EOF = 'EOF'
 const _op_ = ['*', '_', '~', '+']
@@ -88,4 +88,4 @@ const scan = (s) => {
   return iter(0, [])
 }
 
-module.exports = scan
+export default scan

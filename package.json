@@ -1,0 +1,23 @@
+{
+  "name": "mdparser",
+  "version": "0.0.1",
+  "description": "A Markdown Parser",
+  "main": "dist/mdparser.cjs",
+  "scripts": {
+    "build": "rollup --config",
+    "test": "node ./test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RezelChen/MdParser.git"
+  },
+  "author": "Ray Chen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RezelChen/MdParser/issues"
+  },
+  "homepage": "https://github.com/RezelChen/MdParser#readme",
+  "devDependencies": {
+    "rollup": "^2.2.0"
+  }
+}

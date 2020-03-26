@@ -1,6 +1,6 @@
-const scan = require('./scanner')
-const { Node, isPhantom, isWhitespace, isToken } = require('./structs')
-const { isNull, car, cdr, merge, last, hasOne, flatten } = require('./utils')
+import scan from './scanner'
+import { Node, isPhantom, isWhitespace, isToken } from './structs'
+import { isNull, car, cdr, merge, last, hasOne, flatten } from './utils'
 
 //-------------------------------------------------------------
 //												parser
@@ -344,4 +344,4 @@ const parser = (str) => {
   return nodes
 }
 
-module.exports = parser
+export default parser
