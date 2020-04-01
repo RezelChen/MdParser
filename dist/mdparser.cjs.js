@@ -132,10 +132,6 @@ const last = (arr) => {
   return arr[arr.length - 1]
 };
 
-//-------------------------------------------------------------
-//												parser
-//-------------------------------------------------------------
-
 const applyCheck = (p, toks, ctx) => {
   const a = p(toks, ctx);
   return a
@@ -267,6 +263,11 @@ const _type = (type, ...ps) => {
   }
 };
 
+const _plus = (...ps) => {
+  const p = _seqP(...ps);
+  return _seqP(p, _all(p))
+};
+
 const $phantom = (...ps) => {
   const parser = _seqP(...ps);
   return (toks, ctx) => {
@@ -308,18 +309,31 @@ const _seprate_ = (p, sep) => {
   return _seq(p, _all(sep, p))
 };
 
+const $eval = (p, str) => {
+  const toks = scan(str);
+  const [t] = p(toks, []);
+  return t
+};
 
-// const _effectiveCtx = (effectiveCtx, expr) => {
-//   return (toks, ctx) => {
-//     if (!hasOne(ctx, effectiveCtx)) { return [false, false] }
-//     else { return expr(toks, ctx) }
-//   }
-// }
+const HTMLIZE_MAP = {
+  'empthsis': (str) => `<i>${str}</i>`,
+  'underline': (str) => `<u>${str}</u>`,
+  'strong': (str) => `<strong>${str}</strong>`,
+  'strike': (str) => `<strike>${str}</strike>`,
+};
 
+const htmlize = (node) => {
+  let inner;
+  if (Array.isArray(node.elts)) {
+    inner = node.elts.map(htmlize).reduce((a, b) => a + b, '');
+  } else {
+    inner = node.elts;
+  }
 
-//-------------------------------------------------------------
-//												md parser
-//-------------------------------------------------------------
+  const fn = HTMLIZE_MAP[node.type];
+  if (!fn) { return inner }
+  else { return fn(inner) }
+};
 
 const $strongOp = _seq($_('*'), $_('*'));
 const $str2Op = _seq($_('_'), $_('_'));
@@ -330,7 +344,7 @@ const $underOp = _seq($_('+'), $_('+'));
 
 const defineRange = (type, op) => {
   const e1 = _and(_negation(op), $ttok);
-  const e2 = _seqP(op, _all(e1), op);
+  const e2 = _seqP(op, _plus(e1), op);
   return _type(type, e2)
 };
 
@@ -365,16 +379,14 @@ const $underline = (toks, ctx) => {
 };
 
 const $whitespace = $pred((node) => isWhitespace(node));
-// const $tok = $pred((node) => isToken(node))
-
+const $tok = $pred((node) => isToken(node));
 const $strikeTok = $$('~');
 const $empTok = $$('*');
 const $emp2Tok = $$('_');
 const $underTok = $$('+');
 
-
 const $ttok = _or(
-  $pred((node) => isToken(node)),
+  $tok,
   $underline,
   $strike,
   $strong,
@@ -393,44 +405,9 @@ const $all = _or(
   _all($whitespace),
 );
 
-// const mdEvalList = (toks, ctx) => {
-//   const list = toks.map((tok) => {
-//     return mdEval(tok, ctx)
-//   })
-
-//   return flatten(list)
-// }
-
-const parser = (str) => {
-  const toks = scan(str);
-  const [t] = $all(toks, []);
-  return { type: 'body', elts: t }
-  // const nodes = mdEvalList(t, [])
-  // return nodes
-};
-
-const HTMLIZE_MAP = {
-  'empthsis': (str) => `<i>${str}</i>`,
-  'underline': (str) => `<u>${str}</u>`,
-  'strong': (str) => `<strong>${str}</strong>`,
-  'strike': (str) => `<strike>${str}</strike>`,
-};
-
-const htmlize = (node) => {
-  let inner;
-  if (Array.isArray(node.elts)) {
-    inner = node.elts.map(htmlize).reduce((a, b) => a + b, '');
-  } else {
-    inner = node.elts;
-  }
-
-  const fn = HTMLIZE_MAP[node.type];
-  if (!fn) { return inner }
-  else { return fn(inner) }
-};
-
-var index = (markdown) => {
-  const node = parser(markdown);
+var index = (str) => {
+  const toks = $eval($all, str);
+  const node = new Node('body', 0, -1, toks);
   return htmlize(node)
 };
 
