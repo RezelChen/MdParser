@@ -6,41 +6,18 @@ import { isWhitespace, isToken } from './structs'
 
 const $whitespace = $pred((node) => isWhitespace(node))
 const $tok = $pred((node) => isToken(node))
-const $strongOp = _seq($_('*'), $_('*'))
-const $str2Op = _seq($_('_'), $_('_'))
-const $empOp = $_('*')
-const $emp2Op = $_('_')
+const $symbol = _or($$('~'), $$('*'), $$('_'), $$('+'))
 const $strikeOp = _seq($_('~'), $_('~'))
-const $underOp = _seq($_('+'), $_('+'))
-const $strikeTok = $$('~')
-const $empTok = $$('*')
-const $emp2Tok = $$('_')
-const $underTok = $$('+')
+const $underlineOp = _seq($_('+'), $_('+'))
+const $strongOp1 = _seq($_('*'), $_('*'))
+const $strongOp2 = _seq($_('_'), $_('_'))
+const $emphasisOp1 = $_('*')
+const $emphasisOp2 = $_('_')
 
 const defineRange = (type, op) => {
   const e1 = _and(_negation(op), $ttok)
   const e2 = _seqP(op, _plus(e1), op)
   return _type(type, e2)
-}
-
-const $strong = (toks, ctx) => {
-  const parser = defineRange('strong', $strongOp)
-  return parser(toks, ctx)
-}
-
-const $str2 = (toks, ctx) => {
-  const parser = defineRange('str2', $str2Op)
-  return parser(toks, ctx)
-}
-
-const $emphisis = (toks, ctx) => {
-  const parser = defineRange('empthsis', $empOp)
-  return parser(toks, ctx)
-}
-
-const $emp2 = (toks, ctx) => {
-  const parser = defineRange('emp2', $emp2Op)
-  return parser(toks, ctx)
 }
 
 const $strike = (toks, ctx) => {
@@ -49,22 +26,29 @@ const $strike = (toks, ctx) => {
 }
 
 const $underline = (toks, ctx) => {
-  const parser = defineRange('underline', $underOp)
+  const parser = defineRange('underline', $underlineOp)
   return parser(toks, ctx)
+}
+
+const $strong = (toks, ctx) => {
+  const p1 = defineRange('strong', $strongOp1)
+  const p2 = defineRange('strong', $strongOp2)
+  return _or(p1, p2)(toks, ctx)
+}
+
+const $emphasis = (toks, ctx) => {
+  const p1 = defineRange('emphasis', $emphasisOp1)
+  const p2 = defineRange('emphasis', $emphasisOp2)
+  return _or(p1, p2)(toks, ctx)
 }
 
 const $ttok = _or(
   $tok,
-  $underline,
   $strike,
+  $underline,
   $strong,
-  $str2,
-  $emphisis,
-  $emp2,
-  $strikeTok,
-  $empTok,
-  $emp2Tok,
-  $underTok,
+  $emphasis,
+  $symbol,
 )
 
 const $sexp = _seprate_($ttok, _all($whitespace))

@@ -1,5 +1,5 @@
 const HTMLIZE_MAP = {
-  'empthsis': (str) => `<i>${str}</i>`,
+  'emphasis': (str) => `<i>${str}</i>`,
   'underline': (str) => `<u>${str}</u>`,
   'strong': (str) => `<strong>${str}</strong>`,
   'strike': (str) => `<strike>${str}</strike>`,
