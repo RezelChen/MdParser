@@ -118,6 +118,10 @@ const cdr = (arr) => {
   return arr.slice(1)
 };
 
+const cons = (item, arr) => {
+  return [item, ...arr]
+};
+
 const merge = (...arrList) => {
   return arrList.reduce((arr1, arr2) => {
     return arr1.concat(arr2)
@@ -127,8 +131,6 @@ const merge = (...arrList) => {
 const last = (arr) => {
   return arr[arr.length - 1]
 };
-
-const hasOne = (arr, item) => arr.indexOf(item) > -1;
 
 //-------------------------------------------------------------
 //												parser
@@ -193,37 +195,37 @@ const _or = (...ps) => {
   }
 };
 
-// const _and = (...ps) => {
-//   return (toks, ctx) => {
+const _and = (...ps) => {
+  return (toks, ctx) => {
 
-//     const loop = (ps, res) => {
-//       if (isNull(ps)) {
-//         const r1 = car(res)
-//         return [car(r1), car(cdr(r1))]
-//       } else {
-//         const [t, r] = applyCheck(car(ps), toks, ctx)
-//         if (!t) {
-//           return [false, false]
-//         } else {
-//           return loop(cdr(ps), cons([t, r], res))
-//         }
-//       }
-//     }
-//     return loop(ps, [])
-//   }
-// }
+    const loop = (ps, res) => {
+      if (isNull(ps)) {
+        const r1 = car(res);
+        return [car(r1), car(cdr(r1))]
+      } else {
+        const [t, r] = applyCheck(car(ps), toks, ctx);
+        if (!t) {
+          return [false, false]
+        } else {
+          return loop(cdr(ps), cons([t, r], res))
+        }
+      }
+    };
+    return loop(ps, [])
+  }
+};
 
-// const _negation = (...ps) => {
-//   const parser = _seqP(...ps)
-//   return (toks, ctx) => {
-//     const [t, r] = parser(toks, ctx)
-//     if (!t && !isNull(toks)) {
-//       return [[car(toks)], cdr(toks)]
-//     } else {
-//       return [false, false]
-//     }
-//   }
-// }
+const _negation = (...ps) => {
+  const parser = _seqP(...ps);
+  return (toks, ctx) => {
+    const [t, r] = parser(toks, ctx);
+    if (!t && !isNull(toks)) {
+      return [[car(toks)], cdr(toks)]
+    } else {
+      return [false, false]
+    }
+  }
+};
 
 const _all = (...ps) => {
   const parser = _seqP(...ps);
@@ -263,11 +265,6 @@ const _type = (type, ...ps) => {
     }
     return [[new Node(type, car(t).start, last(t).end, t)], r]
   }
-};
-
-const _plus = (...ps) => {
-  const p = _seqP(...ps);
-  return _seqP(p, _all(p))
 };
 
 const $phantom = (...ps) => {
@@ -311,21 +308,6 @@ const _seprate_ = (p, sep) => {
   return _seq(p, _all(sep, p))
 };
 
-const _typeCtx = (type, expr) => {
-  const parser = _type(type, expr);
-  return (toks, ctx) => {
-    const newCtx = [type, ...ctx];
-    const a = parser(toks, newCtx);
-    return a
-  }
-};
-
-const _avoidCtx = (avoidCtx, expr) => {
-  return (toks, ctx) => {
-    if (hasOne(ctx, avoidCtx)) { return [false, false] }
-    else { return expr(toks, ctx) }
-  }
-};
 
 // const _effectiveCtx = (effectiveCtx, expr) => {
 //   return (toks, ctx) => {
@@ -346,57 +328,39 @@ const $emp2Op = $_('_');
 const $strikeOp = _seq($_('~'), $_('~'));
 const $underOp = _seq($_('+'), $_('+'));
 
-const $strong = (toks, ctx) => {
-  const expr = _seqP($strongOp, _plus($sexp), $strongOp);
-  const type = 'strong';
-  const $typeExpr = _typeCtx(type, expr);
-  const parser = _avoidCtx(type, $typeExpr);
+const defineRange = (type, op) => {
+  const e1 = _and(_negation(op), $ttok);
+  const e2 = _seqP(op, _all(e1), op);
+  return _type(type, e2)
+};
 
+const $strong = (toks, ctx) => {
+  const parser = defineRange('strong', $strongOp);
   return parser(toks, ctx)
 };
 
 const $str2 = (toks, ctx) => {
-  const expr = _seqP($str2Op, _plus($sexp), $str2Op);
-  const type = 'str2';
-  const $typeExpr = _typeCtx(type, expr);
-  const parser = _avoidCtx(type, $typeExpr);
-
+  const parser = defineRange('str2', $str2Op);
   return parser(toks, ctx)
 };
 
 const $emphisis = (toks, ctx) => {
-  const expr = _seqP($empOp, _plus($sexp), $empOp);
-  const type = 'empthsis';
-  const $typeExpr = _typeCtx(type, expr);
-  const parser = _avoidCtx(type, $typeExpr);
-
+  const parser = defineRange('empthsis', $empOp);
   return parser(toks, ctx)
 };
 
 const $emp2 = (toks, ctx) => {
-  const expr = _seqP($emp2Op, _plus($sexp), $emp2Op);
-  const type = 'emp2';
-  const $typeExpr = _typeCtx(type, expr);
-  const parser = _avoidCtx(type, $typeExpr);
-
+  const parser = defineRange('emp2', $emp2Op);
   return parser(toks, ctx)
 };
 
 const $strike = (toks, ctx) => {
-  const expr = _seqP($strikeOp, _plus($sexp), $strikeOp);
-  const type = 'strike';
-  const $typeExpr = _typeCtx(type, expr);
-  const parser = _avoidCtx(type, $typeExpr);
-
+  const parser = defineRange('strike', $strikeOp);
   return parser(toks, ctx)
 };
 
 const $underline = (toks, ctx) => {
-  const expr = _seqP($underOp, _plus($sexp), $underOp);
-  const type = 'underline';
-  const $typeExpr = _typeCtx(type, expr);
-  const parser = _avoidCtx(type, $typeExpr);
-
+  const parser = defineRange('underline', $underOp);
   return parser(toks, ctx)
 };
 
@@ -404,17 +368,9 @@ const $whitespace = $pred((node) => isWhitespace(node));
 // const $tok = $pred((node) => isToken(node))
 
 const $strikeTok = $$('~');
-const $strCtx = _avoidCtx('strike', $strikeTok);
-
-
 const $empTok = $$('*');
-const $empCtx = _avoidCtx('strong', _avoidCtx('empthsis', $empTok));
-
 const $emp2Tok = $$('_');
-const $emp2Ctx = _avoidCtx('str2', _avoidCtx('emp2', $emp2Tok));
-
 const $underTok = $$('+');
-const $underlineCtx = _avoidCtx('underline', $underTok);
 
 
 const $ttok = _or(
@@ -425,16 +381,16 @@ const $ttok = _or(
   $str2,
   $emphisis,
   $emp2,
-  $strCtx,
-  $empCtx,
-  $emp2Ctx,
-  $underlineCtx
+  $strikeTok,
+  $empTok,
+  $emp2Tok,
+  $underTok,
 );
 
 const $sexp = _seprate_($ttok, _all($whitespace));
 const $all = _or(
   _seq(_all($whitespace), $sexp, _all($whitespace)),
-  _all($whitespace)
+  _all($whitespace),
 );
 
 // const mdEvalList = (toks, ctx) => {
@@ -461,7 +417,13 @@ const HTMLIZE_MAP = {
 };
 
 const htmlize = (node) => {
-  const inner = Array.isArray(node.elts) ? node.elts.map(htmlize).reduce((a, b) => a + b, '') : node.elts;
+  let inner;
+  if (Array.isArray(node.elts)) {
+    inner = node.elts.map(htmlize).reduce((a, b) => a + b, '');
+  } else {
+    inner = node.elts;
+  }
+
   const fn = HTMLIZE_MAP[node.type];
   if (!fn) { return inner }
   else { return fn(inner) }
