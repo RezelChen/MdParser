@@ -10,6 +10,6 @@ export class Node {
 }
 
 export const isPhantom = (node) => node.type === 'phantom'
+export const isNewline = (node) => node.type === 'newline'
 export const isWhitespace = (node) => node.type === 'whitespace'
-// export const isOp = (node) => node.type === 'op'
 export const isToken = (node) => node.type === 'token'

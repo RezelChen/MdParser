@@ -1,8 +1,9 @@
 import { Node } from './structs'
 
 const EOF = 'EOF'
-const _op_ = ['*', '_', '~', '+']
-const _whitespaces_ = [' ', '\n']
+const NEWLINES = ['\n']
+const WHITESPACES = [' ']
+const DELIMS = ['*', '_', '~', '+']
 
 const startWith = (s, start, prefix) => {
   const len = prefix.length
@@ -26,18 +27,21 @@ const startWithOneOf = (s, start, prefixs) => {
   return false
 }
 
-const findOp = (s, start) => {
-  return startWithOneOf(s, start, _op_)
-}
-
-const findWhitespace = (s, start) => {
-  return startWithOneOf(s, start, _whitespaces_)
-}
+const findNewline = (s, start) =>  startWithOneOf(s, start, NEWLINES)
+const findWhitespace = (s, start) => startWithOneOf(s, start, WHITESPACES)
+const findDelim = (s, start) => startWithOneOf(s, start, DELIMS)
 
 const scan = (s) => {
   const scan1 = (s, start) => {
     if (start === s.length) {
       return [EOF, start]
+    }
+
+    const newline = findNewline(s, start)
+    if (newline) {
+      const end = start + newline.length
+      const tok = new Node('newline', start, end, newline)
+      return [tok, end]
     }
 
     const whitespace = findWhitespace(s, start)
@@ -47,18 +51,19 @@ const scan = (s) => {
       return [tok, end]
     }
 
-    const op = findOp(s, start)
-    if (op) {
-      const end = start + op.length
-      const tok = new Node('op', start, end, op)
+    const delim = findDelim(s, start)
+    if (delim) {
+      const end = start + delim.length
+      const tok = new Node('token', start, end, delim)
       return [tok, end]
     }
 
     // else, identifier or number
     const iter = (pos) => {
       if (s.length <= pos ||
+        findNewline(s, pos) ||
         findWhitespace(s, pos) ||
-        findOp(s, pos)
+        findDelim(s, pos)
       ) {
         const substring = s.slice(start, pos)
         const t = new Node('token', start, pos, substring)

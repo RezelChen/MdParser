@@ -2,10 +2,12 @@ import {
   _seq, _seqP, _or, _and, _negation, _all, _type, _plus,
   $pred, $$, $_, _seprate_,
 } from './combinator'
-import { isWhitespace, isToken } from './structs'
+import { isNewline, isWhitespace, isToken } from './structs'
 
-const $whitespace = $pred((node) => isWhitespace(node))
-const $tok = $pred((node) => isToken(node))
+const $newline = $pred(isNewline)
+const $whitespace = $pred(isWhitespace)
+const $tok = $pred(isToken)
+
 const $symbol = _or($$('~'), $$('*'), $$('_'), $$('+'))
 const $strikeOp = _seq($_('~'), $_('~'))
 const $underlineOp = _seq($_('+'), $_('+'))
@@ -43,18 +45,19 @@ const $emphasis = (toks, ctx) => {
 }
 
 const $ttok = _or(
-  $tok,
   $strike,
   $underline,
   $strong,
   $emphasis,
   $symbol,
+  $tok,
 )
 
-const $sexp = _seprate_($ttok, _all($whitespace))
+const $blank = _or($newline, $whitespace)
+const $sexp = _seprate_($ttok, _all($blank))
 const $all = _or(
-  _seq(_all($whitespace), $sexp, _all($whitespace)),
-  _all($whitespace),
+  _seq(_all($blank), $sexp, _all($blank)),
+  _all($blank),
 )
 
 export default $all

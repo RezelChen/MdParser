@@ -13,13 +13,14 @@ var mdparser = (function () {
   }
 
   const isPhantom = (node) => node.type === 'phantom';
+  const isNewline = (node) => node.type === 'newline';
   const isWhitespace = (node) => node.type === 'whitespace';
-  // export const isOp = (node) => node.type === 'op'
   const isToken = (node) => node.type === 'token';
 
   const EOF = 'EOF';
-  const _op_ = ['*', '_', '~', '+'];
-  const _whitespaces_ = [' ', '\n'];
+  const NEWLINES = ['\n'];
+  const WHITESPACES = [' '];
+  const DELIMS = ['*', '_', '~', '+'];
 
   const startWith = (s, start, prefix) => {
     const len = prefix.length;
@@ -43,18 +44,21 @@ var mdparser = (function () {
     return false
   };
 
-  const findOp = (s, start) => {
-    return startWithOneOf(s, start, _op_)
-  };
-
-  const findWhitespace = (s, start) => {
-    return startWithOneOf(s, start, _whitespaces_)
-  };
+  const findNewline = (s, start) =>  startWithOneOf(s, start, NEWLINES);
+  const findWhitespace = (s, start) => startWithOneOf(s, start, WHITESPACES);
+  const findDelim = (s, start) => startWithOneOf(s, start, DELIMS);
 
   const scan = (s) => {
     const scan1 = (s, start) => {
       if (start === s.length) {
         return [EOF, start]
+      }
+
+      const newline = findNewline(s, start);
+      if (newline) {
+        const end = start + newline.length;
+        const tok = new Node('newline', start, end, newline);
+        return [tok, end]
       }
 
       const whitespace = findWhitespace(s, start);
@@ -64,18 +68,19 @@ var mdparser = (function () {
         return [tok, end]
       }
 
-      const op = findOp(s, start);
-      if (op) {
-        const end = start + op.length;
-        const tok = new Node('op', start, end, op);
+      const delim = findDelim(s, start);
+      if (delim) {
+        const end = start + delim.length;
+        const tok = new Node('token', start, end, delim);
         return [tok, end]
       }
 
       // else, identifier or number
       const iter = (pos) => {
         if (s.length <= pos ||
+          findNewline(s, pos) ||
           findWhitespace(s, pos) ||
-          findOp(s, pos)
+          findDelim(s, pos)
         ) {
           const substring = s.slice(start, pos);
           const t = new Node('token', start, pos, substring);
@@ -336,8 +341,10 @@ var mdparser = (function () {
     else { return fn(inner) }
   };
 
-  const $whitespace = $pred((node) => isWhitespace(node));
-  const $tok = $pred((node) => isToken(node));
+  const $newline = $pred(isNewline);
+  const $whitespace = $pred(isWhitespace);
+  const $tok = $pred(isToken);
+
   const $symbol = _or($$('~'), $$('*'), $$('_'), $$('+'));
   const $strikeOp = _seq($_('~'), $_('~'));
   const $underlineOp = _seq($_('+'), $_('+'));
@@ -375,18 +382,19 @@ var mdparser = (function () {
   };
 
   const $ttok = _or(
-    $tok,
     $strike,
     $underline,
     $strong,
     $emphasis,
     $symbol,
+    $tok,
   );
 
-  const $sexp = _seprate_($ttok, _all($whitespace));
+  const $blank = _or($newline, $whitespace);
+  const $sexp = _seprate_($ttok, _all($blank));
   const $all = _or(
-    _seq(_all($whitespace), $sexp, _all($whitespace)),
-    _all($whitespace),
+    _seq(_all($blank), $sexp, _all($blank)),
+    _all($blank),
   );
 
   var index = (str) => {
