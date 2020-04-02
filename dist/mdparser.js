@@ -250,17 +250,10 @@ var mdparser = (function () {
   };
 
   const _type = (type, ...ps) => {
-    const parser = _seq(...ps);
+    const parser = _seqP(...ps);
     return (toks, ctx) => {
       const [t, r] = parser(toks, ctx);
-      if (!t) {
-        return [false, false]
-      }
-      if (!type) {
-        return [t.filter((tok) => {
-          return !isPhantom(tok)
-        }), r]
-      }
+      if (!t) { return [false, false] }
       if (isNull(t)) {
         if (isNull(toks)) { return [false, false] }
         else {
@@ -349,7 +342,6 @@ var mdparser = (function () {
   const $whitespace = $pred(isWhitespace);
   const $tok = $pred(isToken);
 
-  const $symbol = _or($$('~'), $$('*'), $$('_'), $$('+'));
   const $strikeOp = _seq($_('~'), $_('~'));
   const $underlineOp = _seq($_('+'), $_('+'));
   const $strongOp1 = _seq($_('*'), $_('*'));
@@ -357,10 +349,14 @@ var mdparser = (function () {
   const $emphasisOp1 = $_('*');
   const $emphasisOp2 = $_('_');
 
-  const defineRange = (type, op) => {
-    const e1 = _and(_negation(op), $exp);
-    const e2 = _seqP(op, _plus(e1), op);
-    return _type(type, e2)
+  const defineRange = (type, $op) => {
+    // TODO should negation the range, instead of $op
+    const $e1 = _and(_negation($op), $exp);
+    // TODO It's not a good place to define $exps in here
+    // We hope to change the behavior of $exp, instead of make a new $exp in here
+    // Maybe the ctx is still need to make $exp or powful
+    const $exps = _seprate_($e1, _all($whitespace));
+    return _type(type, $op, $exps, $op)
   };
 
   const $strike = (toks, ctx) => {
@@ -390,7 +386,6 @@ var mdparser = (function () {
     $underline,
     $strong,
     $emphasis,
-    $symbol,
     $tok,
   );
 

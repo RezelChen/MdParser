@@ -114,17 +114,10 @@ export const _all = (...ps) => {
 }
 
 export const _type = (type, ...ps) => {
-  const parser = _seq(...ps)
+  const parser = _seqP(...ps)
   return (toks, ctx) => {
     const [t, r] = parser(toks, ctx)
-    if (!t) {
-      return [false, false]
-    }
-    if (!type) {
-      return [t.filter((tok) => {
-        return !isPhantom(tok)
-      }), r]
-    }
+    if (!t) { return [false, false] }
     if (isNull(t)) {
       if (isNull(toks)) { return [false, false] }
       else {
