@@ -160,6 +160,17 @@ export const $pred = (proc) => {
   }
 }
 
+// parses the parsers ps normally
+// but "globs" the parses and doesn't put them into the output.
+export const $glob = (...ps) => {
+  const parser = _seq(...ps)
+  return (toks, ctx) => {
+    const [t, r] = parser(toks, ctx)
+    if (!t) { return [false, false] }
+    else { return [[], r] }
+  }
+}
+
 export const $$ = (s) => {
   return $pred((x) => {
     return x.elts === s

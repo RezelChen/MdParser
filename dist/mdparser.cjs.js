@@ -19,7 +19,7 @@ const isToken = (node) => node.type === 'token';
 const EOF = 'EOF';
 const NEWLINES = ['\n'];
 const WHITESPACES = [' '];
-const DELIMS = ['*', '_', '~', '+'];
+const DELIMS = ['*', '_', '~', '+', '#'];
 
 const startWith = (s, start, prefix) => {
   const len = prefix.length;
@@ -295,6 +295,17 @@ const $pred = (proc) => {
   }
 };
 
+// parses the parsers ps normally
+// but "globs" the parses and doesn't put them into the output.
+const $glob = (...ps) => {
+  const parser = _seq(...ps);
+  return (toks, ctx) => {
+    const [t, r] = parser(toks, ctx);
+    if (!t) { return [false, false] }
+    else { return [[], r] }
+  }
+};
+
 const $$ = (s) => {
   return $pred((x) => {
     return x.elts === s
@@ -322,6 +333,7 @@ const HTMLIZE_MAP = {
   'strong': (str) => `<strong>${str}</strong>`,
   'strike': (str) => `<strike>${str}</strike>`,
   'line': (str) => `<p>${str}</p>`,
+  'h1': (str) => `<h1>${str}</h1>`,
 };
 
 const htmlize = (node) => {
@@ -340,6 +352,7 @@ const htmlize = (node) => {
 const $newline = $pred(isNewline);
 const $whitespace = $pred(isWhitespace);
 const $tok = $pred(isToken);
+const $white = _all($whitespace);
 
 const $strikeOp = _seq($_('~'), $_('~'));
 const $underlineOp = _seq($_('+'), $_('+'));
@@ -347,6 +360,7 @@ const $strongOp1 = _seq($_('*'), $_('*'));
 const $strongOp2 = _seq($_('_'), $_('_'));
 const $emphasisOp1 = $_('*');
 const $emphasisOp2 = $_('_');
+const $headerOp = $glob($white, $_('#'), $white);
 
 const defineRange = (type, $op) => {
   // TODO should negation the range, instead of $op
@@ -354,7 +368,7 @@ const defineRange = (type, $op) => {
   // TODO It's not a good place to define $exps in here
   // We hope to change the behavior of $exp, instead of make a new $exp in here
   // Maybe the ctx is still need to make $exp or powful
-  const $exps = _seprate_($e1, _all($whitespace));
+  const $exps = _seprate_($e1, $white);
   return _type(type, $op, $exps, $op)
 };
 
@@ -388,7 +402,11 @@ const $exp = _or(
   $tok,
 );
 
-const $line = _type('line', _seprate_(_all($whitespace), $exp));
+const $lineBody = _seprate_($white, $exp);
+const $line = _or(
+  _type('h1', $headerOp, $lineBody),
+  _type('line', $lineBody),
+);
 const $lines = _seprate_($line, _plus($newline));
 const $markdown = $lines;
 

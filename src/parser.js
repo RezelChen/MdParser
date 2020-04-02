@@ -1,12 +1,13 @@
 import {
   _seq, _seqP, _or, _and, _negation, _all, _type, _plus,
-  $pred, $$, $_, _seprate_,
+  $pred, $glob, $$, $_, _seprate_,
 } from './combinator'
 import { isNewline, isWhitespace, isToken } from './structs'
 
 const $newline = $pred(isNewline)
 const $whitespace = $pred(isWhitespace)
 const $tok = $pred(isToken)
+const $white = _all($whitespace)
 
 const $strikeOp = _seq($_('~'), $_('~'))
 const $underlineOp = _seq($_('+'), $_('+'))
@@ -14,6 +15,7 @@ const $strongOp1 = _seq($_('*'), $_('*'))
 const $strongOp2 = _seq($_('_'), $_('_'))
 const $emphasisOp1 = $_('*')
 const $emphasisOp2 = $_('_')
+const $headerOp = $glob($white, $_('#'), $white)
 
 const defineRange = (type, $op) => {
   // TODO should negation the range, instead of $op
@@ -21,7 +23,7 @@ const defineRange = (type, $op) => {
   // TODO It's not a good place to define $exps in here
   // We hope to change the behavior of $exp, instead of make a new $exp in here
   // Maybe the ctx is still need to make $exp or powful
-  const $exps = _seprate_($e1, _all($whitespace))
+  const $exps = _seprate_($e1, $white)
   return _type(type, $op, $exps, $op)
 }
 
@@ -55,7 +57,11 @@ const $exp = _or(
   $tok,
 )
 
-const $line = _type('line', _seprate_(_all($whitespace), $exp))
+const $lineBody = _seprate_($white, $exp)
+const $line = _or(
+  _type('h1', $headerOp, $lineBody),
+  _type('line', $lineBody),
+)
 const $lines = _seprate_($line, _plus($newline))
 const $markdown = $lines
 

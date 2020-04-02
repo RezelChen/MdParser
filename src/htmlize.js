@@ -4,6 +4,7 @@ const HTMLIZE_MAP = {
   'strong': (str) => `<strong>${str}</strong>`,
   'strike': (str) => `<strike>${str}</strike>`,
   'line': (str) => `<p>${str}</p>`,
+  'h1': (str) => `<h1>${str}</h1>`,
 }
 
 const htmlize = (node) => {
