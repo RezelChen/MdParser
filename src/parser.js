@@ -15,7 +15,7 @@ const $strongOp1 = _seq($_('*'), $_('*'))
 const $strongOp2 = _seq($_('_'), $_('_'))
 const $emphasisOp1 = $_('*')
 const $emphasisOp2 = $_('_')
-const $headerOp = $glob($white, $_('#'), $white)
+const $headOp = $_('#')
 
 const defineRange = (type, $op) => {
   // TODO should negation the range, instead of $op
@@ -25,6 +25,12 @@ const defineRange = (type, $op) => {
   // Maybe the ctx is still need to make $exp or powful
   const $exps = _seprate_($e1, $white)
   return _type(type, $op, $exps, $op)
+}
+
+const defineHeader = (layer) => {
+  const $ops = []
+  for (let i = 0; i < layer; i++) { $ops.push($headOp) }
+  return $glob($white, ...$ops, $white)
 }
 
 const $strike = (toks, ctx) => {
@@ -59,7 +65,12 @@ const $exp = _or(
 
 const $lineBody = _seprate_($white, $exp)
 const $line = _or(
-  _type('h1', $headerOp, $lineBody),
+  _type('h6', defineHeader(6), $lineBody),
+  _type('h5', defineHeader(5), $lineBody),
+  _type('h4', defineHeader(4), $lineBody),
+  _type('h3', defineHeader(3), $lineBody),
+  _type('h2', defineHeader(2), $lineBody),
+  _type('h1', defineHeader(1), $lineBody),
   _type('line', $lineBody),
 )
 const $lines = _seprate_($line, _plus($newline))
