@@ -325,6 +325,7 @@ const HTMLIZE_MAP = {
   'underline': (str) => `<u>${str}</u>`,
   'strong': (str) => `<strong>${str}</strong>`,
   'strike': (str) => `<strike>${str}</strike>`,
+  'line': (str) => `<p>${str}</p>`,
 };
 
 const htmlize = (node) => {
@@ -353,7 +354,7 @@ const $emphasisOp1 = $_('*');
 const $emphasisOp2 = $_('_');
 
 const defineRange = (type, op) => {
-  const e1 = _and(_negation(op), $ttok);
+  const e1 = _and(_negation(op), $exp);
   const e2 = _seqP(op, _plus(e1), op);
   return _type(type, e2)
 };
@@ -380,7 +381,7 @@ const $emphasis = (toks, ctx) => {
   return _or(p1, p2)(toks, ctx)
 };
 
-const $ttok = _or(
+const $exp = _or(
   $strike,
   $underline,
   $strong,
@@ -389,15 +390,12 @@ const $ttok = _or(
   $tok,
 );
 
-const $blank = _or($newline, $whitespace);
-const $sexp = _seprate_($ttok, _all($blank));
-const $all = _or(
-  _seq(_all($blank), $sexp, _all($blank)),
-  _all($blank),
-);
+const $line = _type('line', _seprate_(_all($whitespace), $exp));
+const $lines = _seprate_($line, _plus($newline));
+const $markdown = $lines;
 
 var index = (str) => {
-  const toks = $eval($all, str);
+  const toks = $eval($markdown, str);
   const node = new Node('body', 0, -1, toks);
   return htmlize(node)
 };

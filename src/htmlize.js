@@ -3,6 +3,7 @@ const HTMLIZE_MAP = {
   'underline': (str) => `<u>${str}</u>`,
   'strong': (str) => `<strong>${str}</strong>`,
   'strike': (str) => `<strike>${str}</strike>`,
+  'line': (str) => `<p>${str}</p>`,
 }
 
 const htmlize = (node) => {
