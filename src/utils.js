@@ -3,7 +3,7 @@ export const isNull = (arr) => {
 }
 
 export const car = (arr) => {
-  if (arr.length === 0) { throw new Error('CAR -- Can nor car null') }
+  if (arr.length === 0) { throw new Error('CAR -- Can not car null') }
   return arr[0]
 }
 

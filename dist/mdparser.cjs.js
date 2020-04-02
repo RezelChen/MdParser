@@ -114,7 +114,7 @@ const isNull = (arr) => {
 };
 
 const car = (arr) => {
-  if (arr.length === 0) { throw new Error('CAR -- Can nor car null') }
+  if (arr.length === 0) { throw new Error('CAR -- Can not car null') }
   return arr[0]
 };
 
@@ -261,8 +261,11 @@ const _type = (type, ...ps) => {
       }), r]
     }
     if (isNull(t)) {
-      const { start } = car(toks);
-      return [[new Node(type, start, start, [])], r]
+      if (isNull(toks)) { return [false, false] }
+      else {
+        const { start } = car(toks);
+        return [[new Node(type, start, start, [])], r]
+      }
     }
     return [[new Node(type, car(t).start, last(t).end, t)], r]
   }

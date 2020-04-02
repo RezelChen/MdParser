@@ -126,8 +126,11 @@ export const _type = (type, ...ps) => {
       }), r]
     }
     if (isNull(t)) {
-      const { start } = car(toks)
-      return [[new Node(type, start, start, [])], r]
+      if (isNull(toks)) { return [false, false] }
+      else {
+        const { start } = car(toks)
+        return [[new Node(type, start, start, [])], r]
+      }
     }
     return [[new Node(type, car(t).start, last(t).end, t)], r]
   }
