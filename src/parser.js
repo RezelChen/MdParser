@@ -1,6 +1,6 @@
 import {
   _seq, _seqP, _or, _and, _negation, _all, _type, _plus,
-  $pred, $glob, $$, $_, _seprate_, $ctx, $out, $phantom,
+  $pred, $glob, $$, $_, _seprate_, $ctx, $out, $phantom, _maybe,
 } from './combinator'
 import { isNewline, isWhitespace, isToken } from './structs'
 
@@ -75,7 +75,7 @@ const $exp = _or(
 )
 
 const $exps = _seprate_($exp, $white)
-const $lineBody = _or(_seq($white, $exps, $white), $white)
+const $lineBody = _seq($white, _maybe($exps, $white))
 const $line = _or(
   _type('h6', defineHeader(6), $lineBody),
   _type('h5', defineHeader(5), $lineBody),

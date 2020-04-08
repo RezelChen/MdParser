@@ -134,6 +134,8 @@ export const _plus = (...ps) => {
   return _seqP(p, _all(p))
 }
 
+export const _maybe = (...ps) => _or(_seqP(...ps), $none)
+
 export const $phantom = (...ps) => {
   const parser = _seqP(...ps)
   return (toks, ctx) => {
@@ -147,6 +149,8 @@ export const $phantom = (...ps) => {
     return [[new Node('phantom', car(t).start, last(t).end, [])], r]
   }
 }
+
+export const $none = (toks, ctx) => [[], toks]
 
 export const $pred = (proc) => {
   return (toks, ctx) => {

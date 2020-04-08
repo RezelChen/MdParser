@@ -239,6 +239,8 @@ const _plus = (...ps) => {
   return _seqP(p, _all(p))
 };
 
+const _maybe = (...ps) => _or(_seqP(...ps), $none);
+
 const $phantom = (...ps) => {
   const parser = _seqP(...ps);
   return (toks, ctx) => {
@@ -252,6 +254,8 @@ const $phantom = (...ps) => {
     return [[new Node('phantom', car(t).start, last(t).end, [])], r]
   }
 };
+
+const $none = (toks, ctx) => [[], toks];
 
 const $pred = (proc) => {
   return (toks, ctx) => {
@@ -402,7 +406,7 @@ const $exp = _or(
 );
 
 const $exps = _seprate_($exp, $white);
-const $lineBody = _or(_seq($white, $exps, $white), $white);
+const $lineBody = _seq($white, _maybe($exps, $white));
 const $line = _or(
   _type('h6', defineHeader(6), $lineBody),
   _type('h5', defineHeader(5), $lineBody),
