@@ -71,7 +71,7 @@ var mdparser = (function () {
       const delim = findDelim(s, start);
       if (delim) {
         const end = start + delim.length;
-        const tok = new Node('token', start, end, delim);
+        const tok = new Node('delim', start, end, delim);
         return [tok, end]
       }
 
@@ -138,6 +138,8 @@ var mdparser = (function () {
     return arr[arr.length - 1]
   };
 
+  const includes = (arr, item) => arr.includes(item);
+
   const applyCheck = (p, toks, ctx) => {
     const a = p(toks, ctx);
     return a
@@ -194,38 +196,6 @@ var mdparser = (function () {
       };
 
       return loop(ps)
-    }
-  };
-
-  const _and = (...ps) => {
-    return (toks, ctx) => {
-
-      const loop = (ps, res) => {
-        if (isNull(ps)) {
-          const r1 = car(res);
-          return [car(r1), car(cdr(r1))]
-        } else {
-          const [t, r] = applyCheck(car(ps), toks, ctx);
-          if (!t) {
-            return [false, false]
-          } else {
-            return loop(cdr(ps), cons([t, r], res))
-          }
-        }
-      };
-      return loop(ps, [])
-    }
-  };
-
-  const _negation = (...ps) => {
-    const parser = _seqP(...ps);
-    return (toks, ctx) => {
-      const [t, r] = parser(toks, ctx);
-      if (!t && !isNull(toks)) {
-        return [[car(toks)], cdr(toks)]
-      } else {
-        return [false, false]
-      }
     }
   };
 
@@ -308,14 +278,8 @@ var mdparser = (function () {
   };
 
   const $$ = (s) => {
-    return $pred((x) => {
-      return x.elts === s
-    })
-  };
-
-  const $_ = (s) => {
-    const a = $phantom($$(s));
-    return a
+    const id = (x) => x.elts === s;
+    return $pred(id)
   };
 
   const _seprate_ = (p, sep) => {
@@ -326,6 +290,19 @@ var mdparser = (function () {
     const toks = scan(str);
     const [t] = p(toks, []);
     return t
+  };
+
+  const $ctx = (c, ...ps) => {
+    const parser = _seqP(...ps);
+    return (toks, ctx) => parser(toks, cons(c, ctx))
+  };
+
+  const $out = (c, ...ps) => {
+    const parser = _seqP(...ps);
+    return (toks, ctx) => {
+      if (includes(ctx, c)) { return [false, false] }
+      else { return parser(toks, ctx) }
+    }
   };
 
   const HTMLIZE_MAP = {
@@ -360,22 +337,32 @@ var mdparser = (function () {
   const $tok = $pred(isToken);
   const $white = _all($whitespace);
 
-  const $strikeOp = _seq($_('~'), $_('~'));
-  const $underlineOp = _seq($_('+'), $_('+'));
-  const $strongOp1 = _seq($_('*'), $_('*'));
-  const $strongOp2 = _seq($_('_'), $_('_'));
-  const $emphasisOp1 = $_('*');
-  const $emphasisOp2 = $_('_');
-  const $headOp = $_('#');
+  const $tilde = $$('~');
+  const $star = $$('*');
+  const $plus = $$('+');
+  const $under = $$('_');
+  const $sharp = $$('#');
 
-  const defineRange = (type, $op) => {
-    // TODO should negation the range, instead of $op
-    const $e1 = _and(_negation($op), $exp);
-    // TODO It's not a good place to define $exps in here
-    // We hope to change the behavior of $exp, instead of make a new $exp in here
-    // Maybe the ctx is still need to make $exp or powful
-    const $exps = _seprate_($e1, $white);
-    return _type(type, $op, $exps, $op)
+  const $symbol = _or(
+    $out('~', $out('~~', $tilde)),
+    $out('*', $out('**', $star)),
+    $out('+', $out('++', $plus)),
+    $out('_', $out('__', $under)),
+    $sharp,
+  );
+
+  const $strikeOp = _seq($tilde, $tilde);
+  const $underlineOp = _seq($plus, $plus);
+  const $strongOp1 = _seq($star, $star);
+  const $strongOp2 = _seq($under, $under);
+  const $headOp = $sharp;
+
+  const defineRange = (range, $op) => {
+    $op = $phantom($op);
+    // define a range in here
+    const $range = $ctx(range, $op, $exps, $op);
+    // use $out here to aviod recursive call
+    return $out(range, $range)
   };
 
   const defineHeader = (layer) => {
@@ -385,24 +372,24 @@ var mdparser = (function () {
   };
 
   const $strike = (toks, ctx) => {
-    const parser = defineRange('strike', $strikeOp);
+    const parser = _type('strike', defineRange('~~', $strikeOp));
     return parser(toks, ctx)
   };
 
   const $underline = (toks, ctx) => {
-    const parser = defineRange('underline', $underlineOp);
+    const parser = _type('underline', defineRange('++', $underlineOp));
     return parser(toks, ctx)
   };
 
   const $strong = (toks, ctx) => {
-    const p1 = defineRange('strong', $strongOp1);
-    const p2 = defineRange('strong', $strongOp2);
+    const p1 = _type('strong', defineRange('**', $strongOp1));
+    const p2 = _type('strong', defineRange('__', $strongOp2));
     return _or(p1, p2)(toks, ctx)
   };
 
   const $emphasis = (toks, ctx) => {
-    const p1 = defineRange('emphasis', $emphasisOp1);
-    const p2 = defineRange('emphasis', $emphasisOp2);
+    const p1 = _type('emphasis', defineRange('*', $star));
+    const p2 = _type('emphasis', defineRange('_', $under));
     return _or(p1, p2)(toks, ctx)
   };
 
@@ -412,9 +399,11 @@ var mdparser = (function () {
     $strong,
     $emphasis,
     $tok,
+    $symbol,
   );
 
-  const $lineBody = _seprate_($white, $exp);
+  const $exps = _seprate_($exp, $white);
+  const $lineBody = _or(_seq($white, $exps, $white), $white);
   const $line = _or(
     _type('h6', defineHeader(6), $lineBody),
     _type('h5', defineHeader(5), $lineBody),

@@ -1,6 +1,6 @@
 import scan from './scanner'
 import { Node, isPhantom } from './structs'
-import { isNull, car, cdr, merge, last, cons } from './utils'
+import { isNull, car, cdr, merge, last, cons, includes } from './utils'
 
 const applyCheck = (p, toks, ctx) => {
   const a = p(toks, ctx)
@@ -172,15 +172,11 @@ export const $glob = (...ps) => {
 }
 
 export const $$ = (s) => {
-  return $pred((x) => {
-    return x.elts === s
-  })
+  const id = (x) => x.elts === s
+  return $pred(id)
 }
 
-export const $_ = (s) => {
-  const a = $phantom($$(s))
-  return a
-}
+export const $_ = (s) => $phantom($$(s))
 
 export const _seprate_ = (p, sep) => {
   return _seq(p, _all(sep, p))
@@ -190,4 +186,17 @@ export const $eval = (p, str) => {
   const toks = scan(str)
   const [t] = p(toks, [])
   return t
+}
+
+export const $ctx = (c, ...ps) => {
+  const parser = _seqP(...ps)
+  return (toks, ctx) => parser(toks, cons(c, ctx))
+}
+
+export const $out = (c, ...ps) => {
+  const parser = _seqP(...ps)
+  return (toks, ctx) => {
+    if (includes(ctx, c)) { return [false, false] }
+    else { return parser(toks, ctx) }
+  }
 }

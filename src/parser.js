@@ -1,6 +1,6 @@
 import {
   _seq, _seqP, _or, _and, _negation, _all, _type, _plus,
-  $pred, $glob, $$, $_, _seprate_,
+  $pred, $glob, $$, $_, _seprate_, $ctx, $out, $phantom,
 } from './combinator'
 import { isNewline, isWhitespace, isToken } from './structs'
 
@@ -9,22 +9,32 @@ const $whitespace = $pred(isWhitespace)
 const $tok = $pred(isToken)
 const $white = _all($whitespace)
 
-const $strikeOp = _seq($_('~'), $_('~'))
-const $underlineOp = _seq($_('+'), $_('+'))
-const $strongOp1 = _seq($_('*'), $_('*'))
-const $strongOp2 = _seq($_('_'), $_('_'))
-const $emphasisOp1 = $_('*')
-const $emphasisOp2 = $_('_')
-const $headOp = $_('#')
+const $tilde = $$('~')
+const $star = $$('*')
+const $plus = $$('+')
+const $under = $$('_')
+const $sharp = $$('#')
 
-const defineRange = (type, $op) => {
-  // TODO should negation the range, instead of $op
-  const $e1 = _and(_negation($op), $exp)
-  // TODO It's not a good place to define $exps in here
-  // We hope to change the behavior of $exp, instead of make a new $exp in here
-  // Maybe the ctx is still need to make $exp or powful
-  const $exps = _seprate_($e1, $white)
-  return _type(type, $op, $exps, $op)
+const $symbol = _or(
+  $out('~', $out('~~', $tilde)),
+  $out('*', $out('**', $star)),
+  $out('+', $out('++', $plus)),
+  $out('_', $out('__', $under)),
+  $sharp,
+)
+
+const $strikeOp = _seq($tilde, $tilde)
+const $underlineOp = _seq($plus, $plus)
+const $strongOp1 = _seq($star, $star)
+const $strongOp2 = _seq($under, $under)
+const $headOp = $sharp
+
+const defineRange = (range, $op) => {
+  $op = $phantom($op)
+  // define a range in here
+  const $range = $ctx(range, $op, $exps, $op)
+  // use $out here to aviod recursive call
+  return $out(range, $range)
 }
 
 const defineHeader = (layer) => {
@@ -34,24 +44,24 @@ const defineHeader = (layer) => {
 }
 
 const $strike = (toks, ctx) => {
-  const parser = defineRange('strike', $strikeOp)
+  const parser = _type('strike', defineRange('~~', $strikeOp))
   return parser(toks, ctx)
 }
 
 const $underline = (toks, ctx) => {
-  const parser = defineRange('underline', $underlineOp)
+  const parser = _type('underline', defineRange('++', $underlineOp))
   return parser(toks, ctx)
 }
 
 const $strong = (toks, ctx) => {
-  const p1 = defineRange('strong', $strongOp1)
-  const p2 = defineRange('strong', $strongOp2)
+  const p1 = _type('strong', defineRange('**', $strongOp1))
+  const p2 = _type('strong', defineRange('__', $strongOp2))
   return _or(p1, p2)(toks, ctx)
 }
 
 const $emphasis = (toks, ctx) => {
-  const p1 = defineRange('emphasis', $emphasisOp1)
-  const p2 = defineRange('emphasis', $emphasisOp2)
+  const p1 = _type('emphasis', defineRange('*', $star))
+  const p2 = _type('emphasis', defineRange('_', $under))
   return _or(p1, p2)(toks, ctx)
 }
 
@@ -61,9 +71,11 @@ const $exp = _or(
   $strong,
   $emphasis,
   $tok,
+  $symbol,
 )
 
-const $lineBody = _seprate_($white, $exp)
+const $exps = _seprate_($exp, $white)
+const $lineBody = _or(_seq($white, $exps, $white), $white)
 const $line = _or(
   _type('h6', defineHeader(6), $lineBody),
   _type('h5', defineHeader(5), $lineBody),

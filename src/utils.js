@@ -26,6 +26,6 @@ export const last = (arr) => {
   return arr[arr.length - 1]
 }
 
-export const hasOne = (arr, item) => arr.indexOf(item) > -1
+export const includes = (arr, item) => arr.includes(item)
 
 export const flatten = (arr) => arr.reduce((a, b) => a.concat(b), [])

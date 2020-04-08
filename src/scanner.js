@@ -54,7 +54,7 @@ const scan = (s) => {
     const delim = findDelim(s, start)
     if (delim) {
       const end = start + delim.length
-      const tok = new Node('token', start, end, delim)
+      const tok = new Node('delim', start, end, delim)
       return [tok, end]
     }
 
