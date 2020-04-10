@@ -10,6 +10,7 @@ const HTMLIZE_MAP = {
   'h4': (str) => `<h4>${str}</h4>`,
   'h5': (str) => `<h5>${str}</h5>`,
   'h6': (str) => `<h6>${str}</h6>`,
+  'title': (str) => `[${str}]`,
 }
 
 const htmlize = (node) => {

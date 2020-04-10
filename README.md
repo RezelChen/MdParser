@@ -1,5 +1,5 @@
 # MdParser
 A MarkDown Parser
 
-This project can only run in Node.js for now.
+This project is in development.
 You can check the [demo](https://rezelchen.github.io/MdParser/).
