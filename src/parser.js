@@ -14,6 +14,7 @@ const $star = $$('*')
 const $plus = $$('+')
 const $under = $$('_')
 const $sharp = $$('#')
+const $exclam = $$('!')
 const $leftParentheses = $$('(')
 const $rightParentheses = $$(')')
 const $leftBracket = $$('[')
@@ -29,6 +30,7 @@ const $symbol = _or(
   $out('[', $leftBracket),
   $out(']', $rightBracket),
   $sharp,
+  $exclam,
 )
 
 const $strikeOp = _seq($tilde, $tilde)
@@ -105,11 +107,13 @@ const $text = _or(
 const $texts = _seprate_($text, $white)
 
 const $link = _type('link', $title, $url)
+const $img = _type('img', $phantom($exclam), $title, $url)
 const $exp = _or(
   $strike,
   $underline,
   $strong,
   $emphasis,
+  $img,
   $link,
   $text,
 )

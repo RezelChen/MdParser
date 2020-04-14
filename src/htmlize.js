@@ -22,6 +22,12 @@ const htmlizeList = (elts) => {
 const htmlize = (node) => {
 
   switch (node.type) {
+    case 'img': {
+      const [title, url] = node.elts
+      const titleInner = htmlizeList(title.elts)
+      const urlInner = htmlizeList(url.elts)
+      return `<image src="${urlInner}" title="${titleInner}" style="width: 50%" />`
+    }
     case 'link': {
       const [title, url] = node.elts
       const titleInner = htmlizeList(title.elts)

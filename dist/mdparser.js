@@ -20,7 +20,7 @@ var mdparser = (function () {
   const EOF = 'EOF';
   const NEWLINES = ['\n'];
   const WHITESPACES = [' '];
-  const DELIMS = ['*', '_', '~', '+', '#', '[', ']', '(', ')'];
+  const DELIMS = ['*', '_', '~', '+', '#', '[', ']', '(', ')', '!'];
 
   const startWith = (s, start, prefix) => {
     const len = prefix.length;
@@ -333,6 +333,12 @@ var mdparser = (function () {
   const htmlize = (node) => {
 
     switch (node.type) {
+      case 'img': {
+        const [title, url] = node.elts;
+        const titleInner = htmlizeList(title.elts);
+        const urlInner = htmlizeList(url.elts);
+        return `<image src="${urlInner}" title="${titleInner}" style="width: 50%" />`
+      }
       case 'link': {
         const [title, url] = node.elts;
         const titleInner = htmlizeList(title.elts);
@@ -358,6 +364,7 @@ var mdparser = (function () {
   const $plus = $$('+');
   const $under = $$('_');
   const $sharp = $$('#');
+  const $exclam = $$('!');
   const $leftParentheses = $$('(');
   const $rightParentheses = $$(')');
   const $leftBracket = $$('[');
@@ -373,6 +380,7 @@ var mdparser = (function () {
     $out('[', $leftBracket),
     $out(']', $rightBracket),
     $sharp,
+    $exclam,
   );
 
   const $strikeOp = _seq($tilde, $tilde);
@@ -449,11 +457,13 @@ var mdparser = (function () {
   const $texts = _seprate_($text, $white);
 
   const $link = _type('link', $title, $url);
+  const $img = _type('img', $phantom($exclam), $title, $url);
   const $exp = _or(
     $strike,
     $underline,
     $strong,
     $emphasis,
+    $img,
     $link,
     $text,
   );

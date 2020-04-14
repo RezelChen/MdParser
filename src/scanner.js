@@ -3,7 +3,7 @@ import { Node } from './structs'
 const EOF = 'EOF'
 const NEWLINES = ['\n']
 const WHITESPACES = [' ']
-const DELIMS = ['*', '_', '~', '+', '#', '[', ']', '(', ')']
+const DELIMS = ['*', '_', '~', '+', '#', '[', ']', '(', ')', '!']
 
 const startWith = (s, start, prefix) => {
   const len = prefix.length
