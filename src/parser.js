@@ -14,16 +14,20 @@ const $star = $$('*')
 const $plus = $$('+')
 const $under = $$('_')
 const $sharp = $$('#')
-const $left = $$('[')
-const $right = $$(']')
+const $leftParentheses = $$('(')
+const $rightParentheses = $$(')')
+const $leftBracket = $$('[')
+const $rightBracket = $$(']')
 
 const $symbol = _or(
   $out('~', $out('~~', $tilde)),
   $out('*', $out('**', $star)),
   $out('+', $out('++', $plus)),
   $out('_', $out('__', $under)),
-  $out('[', $left),
-  $out(']', $right),
+  $out('(', $leftParentheses),
+  $out(')', $rightParentheses),
+  $out('[', $leftBracket),
+  $out(']', $rightBracket),
   $sharp,
 )
 
@@ -45,6 +49,12 @@ const defineRange1 = (range, $op, $ed) => {
   $op = $phantom($op)
   $ed = $phantom($ed)
   return $ctx(range, $op, $exps, $ed)
+}
+
+const defineRange0 = (range, $op, $ed) => {
+  $op = $phantom($op)
+  $ed = $phantom($ed)
+  return $ctx(range, $op, $texts, $ed)
 }
 
 const defineHeader = (layer) => {
@@ -76,18 +86,30 @@ const $emphasis = (toks, ctx) => {
 }
 
 const $title = (toks, ctx) => {
-  const p = _type('title', defineRange1(']', $left, $right))
+  const p = _type('title', defineRange1(']', $leftBracket, $rightBracket))
   return p(toks, ctx)
 }
+
+const $link = (toks, ctx) => {
+  const p = _type('link', defineRange0(')', $leftParentheses, $rightParentheses))
+  return p(toks, ctx)
+}
+
+const $text = _or(
+  $link,
+  $title,
+  $tok,
+  $symbol,
+)
+
+const $texts = _seprate_($text, $white)
 
 const $exp = _or(
   $strike,
   $underline,
   $strong,
   $emphasis,
-  $title,
-  $tok,
-  $symbol,
+  $text,
 )
 
 const $exps = _seprate_($exp, $white)

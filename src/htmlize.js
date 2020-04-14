@@ -11,6 +11,7 @@ const HTMLIZE_MAP = {
   'h5': (str) => `<h5>${str}</h5>`,
   'h6': (str) => `<h6>${str}</h6>`,
   'title': (str) => `[${str}]`,
+  'link': (str) => `(${str})`,
 }
 
 const htmlize = (node) => {
