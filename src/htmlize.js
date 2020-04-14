@@ -12,6 +12,7 @@ const HTMLIZE_MAP = {
   'h6': (str) => `<h6>${str}</h6>`,
   'title': (str) => `[${str}]`,
   'url': (str) => `(${str})`,
+  'item': (str) => `<li>${str}</li>`,
 }
 
 const htmlizeList = (elts) => {

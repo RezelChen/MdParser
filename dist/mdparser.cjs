@@ -19,7 +19,7 @@ const isToken = (node) => node.type === 'token';
 const EOF = 'EOF';
 const NEWLINES = ['\n'];
 const WHITESPACES = [' '];
-const DELIMS = ['*', '_', '~', '+', '#', '[', ']', '(', ')', '!'];
+const DELIMS = ['*', '_', '~', '+', '#', '[', ']', '(', ')', '!', '-'];
 
 const startWith = (s, start, prefix) => {
   const len = prefix.length;
@@ -322,6 +322,7 @@ const HTMLIZE_MAP = {
   'h6': (str) => `<h6>${str}</h6>`,
   'title': (str) => `[${str}]`,
   'url': (str) => `(${str})`,
+  'item': (str) => `<li>${str}</li>`,
 };
 
 const htmlizeList = (elts) => {
@@ -361,6 +362,7 @@ const $white = _all($whitespace);
 const $tilde = $$('~');
 const $star = $$('*');
 const $plus = $$('+');
+const $dash = $$('-');
 const $under = $$('_');
 const $sharp = $$('#');
 const $exclam = $$('!');
@@ -378,6 +380,7 @@ const $symbol = _or(
   $out(')', $rightParentheses),
   $out('[', $leftBracket),
   $out(']', $rightBracket),
+  $dash,
   $sharp,
   $exclam,
 );
@@ -386,6 +389,7 @@ const $strikeOp = _seq($tilde, $tilde);
 const $underlineOp = _seq($plus, $plus);
 const $strongOp1 = _seq($star, $star);
 const $strongOp2 = _seq($under, $under);
+const $itemOp = _or($star, $plus, $dash);
 const $headOp = $sharp;
 
 const defineRange = (range, $op) => {
@@ -476,6 +480,7 @@ const $line = _or(
   _type('h3', defineHeader(3), $lineBody),
   _type('h2', defineHeader(2), $lineBody),
   _type('h1', defineHeader(1), $lineBody),
+  _type('item', $glob($itemOp, $white), $lineBody),
   _type('line', $lineBody),
 );
 const $lines = _seprate_($line, _plus($newline));
