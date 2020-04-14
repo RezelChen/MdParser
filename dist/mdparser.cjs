@@ -323,6 +323,7 @@ const HTMLIZE_MAP = {
   'title': (str) => `[${str}]`,
   'url': (str) => `(${str})`,
   'item': (str) => `<li>${str}</li>`,
+  'list': (str) => `<ul>${str}</ul>`,
 };
 
 const htmlizeList = (elts) => {
@@ -473,6 +474,8 @@ const $exp = _or(
 
 const $exps = _seprate_($exp, $white);
 const $lineBody = _seq($white, _maybe($exps, $white));
+const $item = _type('item', $glob($itemOp, $white), $lineBody);
+const $list = _type('list', _seprate_($item, _plus($newline)));
 const $line = _or(
   _type('h6', defineHeader(6), $lineBody),
   _type('h5', defineHeader(5), $lineBody),
@@ -480,10 +483,9 @@ const $line = _or(
   _type('h3', defineHeader(3), $lineBody),
   _type('h2', defineHeader(2), $lineBody),
   _type('h1', defineHeader(1), $lineBody),
-  _type('item', $glob($itemOp, $white), $lineBody),
   _type('line', $lineBody),
 );
-const $lines = _seprate_($line, _plus($newline));
+const $lines = _seprate_(_or($list, $line), _plus($newline));
 const $markdown = $lines;
 
 var index = (str) => {
