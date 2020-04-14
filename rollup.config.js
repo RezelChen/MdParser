@@ -5,7 +5,7 @@ module.exports = {
     format: 'iife',
     name: 'mdparser'
   }, {
-    file: 'dist/mdparser.cjs.js',
+    file: 'dist/mdparser.cjs',
     format: 'cjs'
   }]
 };
