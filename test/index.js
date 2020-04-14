@@ -46,38 +46,16 @@ const parser = require('../dist/mdparser.cjs')
 //   '~~t *a* e~~': 't[strike], [strike],a[strike:empthsis], [strike],e[strike]',
 // }
 
-// const show = (nodes) => {
-//   const ns = nodes.map((node) => {
-//     if (node.ctx.length === 0) {
-//       return node.elts
-//     } else {
-//       const ctx = node.ctx.join(':')
-//       return node.elts + '[' + ctx + ']'
-//     }
-//   })
+const TEST_CASES = [
+  ' ',
+  '*abc*',
+  '*ab**cd***fg**',
+  '_ab_',
+  '[*ab*]',
+  '(*ab*)',
+]
 
-//   const result = ns.join(',')
-//   return result
-// }
-
-// const test = () => {
-//   const errKeys = Object.keys(mdMap).filter((key) => {
-//     const nodes = parser(key)
-//     const result = show(nodes)
-
-//     if (result === mdMap[key]) { return false }
-//     else { return true }
-//   })
-
-//   console.log(errKeys)
-// }
-
-const testStr = (str) => {
-  const result = parser(str)
-  // const result = show(nodes)
-  console.log(result)
-  return result
-}
-
-// test()
-testStr('_fd_')
+TEST_CASES.forEach((str) => {
+  const res = parser(str)
+  console.log(res)
+})
