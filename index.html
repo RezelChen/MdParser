@@ -46,7 +46,13 @@
     const toHTML = () => preview.innerHTML = mdparser(editor.value)
     // init
     editor.onkeyup = toHTML
-    editor.value = '*italic*\n**strong**\n++underline++\n~~strick~~'
+    editor.value = 
+`# Header
+*italic*
+**strong**
+++underline++
+~~strick~~
+[Hello World](http://www.example.com)`
     toHTML()
   </script>
 </body>

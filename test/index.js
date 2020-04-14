@@ -53,6 +53,9 @@ const TEST_CASES = [
   '_ab_',
   '[*ab*]',
   '(*ab*)',
+  '[Hello World](http://www.example.com)',
+  '[[Hello]World](http://www.example.com)',
+  '[[Hello](World)](http://www.example.com)',
 ]
 
 TEST_CASES.forEach((str) => {

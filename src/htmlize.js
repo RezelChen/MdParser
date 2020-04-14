@@ -11,20 +11,30 @@ const HTMLIZE_MAP = {
   'h5': (str) => `<h5>${str}</h5>`,
   'h6': (str) => `<h6>${str}</h6>`,
   'title': (str) => `[${str}]`,
-  'link': (str) => `(${str})`,
+  'url': (str) => `(${str})`,
+}
+
+const htmlizeList = (elts) => {
+  if (Array.isArray(elts)) { return elts.map(htmlize).reduce((a, b) => a + b, '') }
+  else { return elts }
 }
 
 const htmlize = (node) => {
-  let inner
-  if (Array.isArray(node.elts)) {
-    inner = node.elts.map(htmlize).reduce((a, b) => a + b, '')
-  } else {
-    inner = node.elts
-  }
 
-  const fn = HTMLIZE_MAP[node.type]
-  if (!fn) { return inner }
-  else { return fn(inner) }
+  switch (node.type) {
+    case 'link': {
+      const [title, url] = node.elts
+      const titleInner = htmlizeList(title.elts)
+      const urlInner = htmlizeList(url.elts)
+      return `<a href="${urlInner}">${titleInner}</a>`
+    }
+    default: {
+      const inner = htmlizeList(node.elts)
+      const fn = HTMLIZE_MAP[node.type]
+      if (!fn) { return inner }
+      else { return fn(inner) }
+    }
+  }
 }
 
 export default htmlize

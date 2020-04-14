@@ -90,13 +90,13 @@ const $title = (toks, ctx) => {
   return p(toks, ctx)
 }
 
-const $link = (toks, ctx) => {
-  const p = _type('link', defineRange0(')', $leftParentheses, $rightParentheses))
+const $url = (toks, ctx) => {
+  const p = _type('url', defineRange0(')', $leftParentheses, $rightParentheses))
   return p(toks, ctx)
 }
 
 const $text = _or(
-  $link,
+  $url,
   $title,
   $tok,
   $symbol,
@@ -104,11 +104,13 @@ const $text = _or(
 
 const $texts = _seprate_($text, $white)
 
+const $link = _type('link', $title, $url)
 const $exp = _or(
   $strike,
   $underline,
   $strong,
   $emphasis,
+  $link,
   $text,
 )
 

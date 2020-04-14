@@ -322,20 +322,30 @@ var mdparser = (function () {
     'h5': (str) => `<h5>${str}</h5>`,
     'h6': (str) => `<h6>${str}</h6>`,
     'title': (str) => `[${str}]`,
-    'link': (str) => `(${str})`,
+    'url': (str) => `(${str})`,
+  };
+
+  const htmlizeList = (elts) => {
+    if (Array.isArray(elts)) { return elts.map(htmlize).reduce((a, b) => a + b, '') }
+    else { return elts }
   };
 
   const htmlize = (node) => {
-    let inner;
-    if (Array.isArray(node.elts)) {
-      inner = node.elts.map(htmlize).reduce((a, b) => a + b, '');
-    } else {
-      inner = node.elts;
-    }
 
-    const fn = HTMLIZE_MAP[node.type];
-    if (!fn) { return inner }
-    else { return fn(inner) }
+    switch (node.type) {
+      case 'link': {
+        const [title, url] = node.elts;
+        const titleInner = htmlizeList(title.elts);
+        const urlInner = htmlizeList(url.elts);
+        return `<a href="${urlInner}">${titleInner}</a>`
+      }
+      default: {
+        const inner = htmlizeList(node.elts);
+        const fn = HTMLIZE_MAP[node.type];
+        if (!fn) { return inner }
+        else { return fn(inner) }
+      }
+    }
   };
 
   const $newline = $pred(isNewline);
@@ -424,13 +434,13 @@ var mdparser = (function () {
     return p(toks, ctx)
   };
 
-  const $link = (toks, ctx) => {
-    const p = _type('link', defineRange0(')', $leftParentheses, $rightParentheses));
+  const $url = (toks, ctx) => {
+    const p = _type('url', defineRange0(')', $leftParentheses, $rightParentheses));
     return p(toks, ctx)
   };
 
   const $text = _or(
-    $link,
+    $url,
     $title,
     $tok,
     $symbol,
@@ -438,11 +448,13 @@ var mdparser = (function () {
 
   const $texts = _seprate_($text, $white);
 
+  const $link = _type('link', $title, $url);
   const $exp = _or(
     $strike,
     $underline,
     $strong,
     $emphasis,
+    $link,
     $text,
   );
 
