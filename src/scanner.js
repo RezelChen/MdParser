@@ -16,9 +16,9 @@ const startWith = (s, start, prefix) => {
   return false
 }
 
-const startWithOneOf = (s, start, prefixs) => {
-  for (let i = 0; i < prefixs.length; i++) {
-    const prefix = prefixs[i]
+const startWithOneOf = (s, start, prefixes) => {
+  for (let i = 0; i < prefixes.length; i++) {
+    const prefix = prefixes[i]
     if (startWith(s, start, prefix)) {
       return prefix
     }

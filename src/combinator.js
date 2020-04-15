@@ -182,7 +182,7 @@ export const $$ = (s) => {
 
 export const $_ = (s) => $phantom($$(s))
 
-export const _seprate_ = (p, sep) => {
+export const _separate_ = (p, sep) => {
   return _seq(p, _all(sep, p))
 }
 

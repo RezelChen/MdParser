@@ -1,6 +1,6 @@
 import {
   _seq, _seqP, _or, _and, _negation, _all, _type, _plus,
-  $pred, $glob, $$, $_, _seprate_, $ctx, $out, $phantom, _maybe,
+  $pred, $glob, $$, $_, _separate_, $ctx, $out, $phantom, _maybe,
 } from './combinator'
 import { isNewline, isWhitespace, isToken } from './structs'
 
@@ -46,7 +46,7 @@ const defineRange = (range, $op) => {
   $op = $phantom($op)
   // define a range in here
   const $range = $ctx(range, $op, $exps, $op)
-  // use $out here to aviod recursive call
+  // use $out here to avoid recursive call
   return $out(range, $range)
 }
 
@@ -107,7 +107,7 @@ const $text = _or(
   $symbol,
 )
 
-const $texts = _seprate_($text, $white)
+const $texts = _separate_($text, $white)
 
 const $link = _type('link', $title, $url)
 const $img = _type('img', $phantom($exclam), $title, $url)
@@ -121,10 +121,10 @@ const $exp = _or(
   $text,
 )
 
-const $exps = _seprate_($exp, $white)
+const $exps = _separate_($exp, $white)
 const $lineBody = _seq($white, _maybe($exps, $white))
 const $item = _type('item', $glob($itemOp, $white), $lineBody)
-const $list = _type('list', _seprate_($item, _plus($newline)))
+const $list = _type('list', _separate_($item, _plus($newline)))
 const $line = _or(
   _type('h6', defineHeader(6), $lineBody),
   _type('h5', defineHeader(5), $lineBody),
@@ -134,7 +134,7 @@ const $line = _or(
   _type('h1', defineHeader(1), $lineBody),
   _type('line', $lineBody),
 )
-const $lines = _seprate_(_or($list, $line), _plus($newline))
+const $lines = _separate_(_or($list, $line), _plus($newline))
 const $markdown = $lines
 
 export default $markdown
