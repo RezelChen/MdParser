@@ -17,10 +17,17 @@ var mdparser = (function () {
   const isWhitespace = (node) => node.type === 'whitespace';
   const isToken = (node) => node.type === 'token';
 
+  const NUMBER = '0123456789';
+  const isNumber = (node) => {
+    if (!isToken(node)) { return false }
+    if (node.elts.length === 0) { return false }
+    return node.elts.split('').every((c) => NUMBER.includes(c))
+  };
+
   const EOF = 'EOF';
   const NEWLINES = ['\n'];
   const WHITESPACES = [' '];
-  const DELIMS = ['*', '_', '~', '+', '#', '[', ']', '(', ')', '!', '-'];
+  const DELIMS = ['*', '_', '~', '+', '#', '[', ']', '(', ')', '!', '-', '.'];
 
   const startWith = (s, start, prefix) => {
     const len = prefix.length;
@@ -325,6 +332,8 @@ var mdparser = (function () {
     'url': (str) => `(${str})`,
     'item': (str) => `<li>${str}</li>`,
     'list': (str) => `<ul>${str}</ul>`,
+    'oli': (str) => `<li>${str}</li>`,
+    'ol': (str) => `<ol>${str}</ol>`,
   };
 
   const htmlizeList = (elts) => {
@@ -359,6 +368,7 @@ var mdparser = (function () {
   const $newline = $pred(isNewline);
   const $whitespace = $pred(isWhitespace);
   const $tok = $pred(isToken);
+  const $number = $pred(isNumber);
   const $white = _all($whitespace);
 
   const $tilde = $$('~');
@@ -372,6 +382,7 @@ var mdparser = (function () {
   const $rightParentheses = $$(')');
   const $leftBracket = $$('[');
   const $rightBracket = $$(']');
+  const $dot = $$('.');
 
   const $symbol = _or(
     $out('~', $out('~~', $tilde)),
@@ -385,6 +396,7 @@ var mdparser = (function () {
     $dash,
     $sharp,
     $exclam,
+    $dot,
   );
 
   const $strikeOp = _seq($tilde, $tilde);
@@ -477,6 +489,8 @@ var mdparser = (function () {
   const $lineBody = _seq($white, _maybe($exps, $white));
   const $item = _type('item', $glob($itemOp, $white), $lineBody);
   const $list = _type('list', _separate_($item, _plus($newline)));
+  const $orderItem = _type('oli', $glob($number, $dot, $white), $lineBody);
+  const $orderList = _type('ol', _separate_($orderItem, _plus($newline)));
   const $line = _or(
     _type('h6', defineHeader(6), $lineBody),
     _type('h5', defineHeader(5), $lineBody),
@@ -486,7 +500,7 @@ var mdparser = (function () {
     _type('h1', defineHeader(1), $lineBody),
     _type('line', $lineBody),
   );
-  const $lines = _separate_(_or($list, $line), _plus($newline));
+  const $lines = _separate_(_or($list, $orderList, $line), _plus($newline));
   const $markdown = $lines;
 
   var index = (str) => {

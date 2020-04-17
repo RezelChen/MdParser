@@ -59,6 +59,7 @@ const TEST_CASES = [
   '![Hello World](http://www.example.com)',
   '# hello',
   '- hello',
+  '1. hello',
 ]
 
 TEST_CASES.forEach((str) => {

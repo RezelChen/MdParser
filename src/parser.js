@@ -2,11 +2,12 @@ import {
   _seq, _seqP, _or, _and, _negation, _all, _type, _plus,
   $pred, $glob, $$, $_, _separate_, $ctx, $out, $phantom, _maybe,
 } from './combinator'
-import { isNewline, isWhitespace, isToken } from './structs'
+import { isNewline, isWhitespace, isToken, isNumber } from './structs'
 
 const $newline = $pred(isNewline)
 const $whitespace = $pred(isWhitespace)
 const $tok = $pred(isToken)
+const $number = $pred(isNumber)
 const $white = _all($whitespace)
 
 const $tilde = $$('~')
@@ -20,6 +21,7 @@ const $leftParentheses = $$('(')
 const $rightParentheses = $$(')')
 const $leftBracket = $$('[')
 const $rightBracket = $$(']')
+const $dot = $$('.')
 
 const $symbol = _or(
   $out('~', $out('~~', $tilde)),
@@ -33,6 +35,7 @@ const $symbol = _or(
   $dash,
   $sharp,
   $exclam,
+  $dot,
 )
 
 const $strikeOp = _seq($tilde, $tilde)
@@ -125,6 +128,8 @@ const $exps = _separate_($exp, $white)
 const $lineBody = _seq($white, _maybe($exps, $white))
 const $item = _type('item', $glob($itemOp, $white), $lineBody)
 const $list = _type('list', _separate_($item, _plus($newline)))
+const $orderItem = _type('oli', $glob($number, $dot, $white), $lineBody)
+const $orderList = _type('ol', _separate_($orderItem, _plus($newline)))
 const $line = _or(
   _type('h6', defineHeader(6), $lineBody),
   _type('h5', defineHeader(5), $lineBody),
@@ -134,7 +139,7 @@ const $line = _or(
   _type('h1', defineHeader(1), $lineBody),
   _type('line', $lineBody),
 )
-const $lines = _separate_(_or($list, $line), _plus($newline))
+const $lines = _separate_(_or($list, $orderList, $line), _plus($newline))
 const $markdown = $lines
 
 export default $markdown

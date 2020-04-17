@@ -13,3 +13,10 @@ export const isPhantom = (node) => node.type === 'phantom'
 export const isNewline = (node) => node.type === 'newline'
 export const isWhitespace = (node) => node.type === 'whitespace'
 export const isToken = (node) => node.type === 'token'
+
+const NUMBER = '0123456789'
+export const isNumber = (node) => {
+  if (!isToken(node)) { return false }
+  if (node.elts.length === 0) { return false }
+  return node.elts.split('').every((c) => NUMBER.includes(c))
+}
