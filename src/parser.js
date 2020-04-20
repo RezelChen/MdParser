@@ -22,6 +22,7 @@ const $rightParentheses = $$(')')
 const $leftBracket = $$('[')
 const $rightBracket = $$(']')
 const $dot = $$('.')
+const $vert = $$('|')
 
 const $symbol = _or(
   $out('~', $out('~~', $tilde)),
@@ -32,6 +33,7 @@ const $symbol = _or(
   $out(')', $rightParentheses),
   $out('[', $leftBracket),
   $out(']', $rightBracket),
+  $out('|', $vert),
   $dash,
   $sharp,
   $exclam,
@@ -63,6 +65,13 @@ const defineRange0 = (range, $op, $ed) => {
   $op = $phantom($op)
   $ed = $phantom($ed)
   return $ctx(range, $op, $texts, $ed)
+}
+
+const defineTableLine = (type, $content) => {
+  const range = '|'
+  const $op = $phantom($vert)
+  const $range = $ctx(range, _separate_($op, _type(type, $content)))
+  return $out(range, $range)
 }
 
 const defineHeader = (layer) => {
@@ -130,6 +139,19 @@ const $item = _type('item', $glob($itemOp, $white), $lineBody)
 const $list = _type('list', _separate_($item, _plus($newline)))
 const $orderItem = _type('oli', $glob($number, $dot, $white), $lineBody)
 const $orderList = _type('ol', _separate_($orderItem, _plus($newline)))
+
+const $split = _seq($white, _plus($dash), $white)
+const $tableSplit = $glob(defineTableLine('split', $split))
+const $thRow = _type('tr', defineTableLine('th', $lineBody))
+const $tdRow = _type('tr', defineTableLine('td', $lineBody))
+const $table = _type('table', 
+  $thRow,
+  $newline,
+  $tableSplit, 
+  $newline,
+  _all(_separate_($tdRow, $newline)),
+)
+
 const $line = _or(
   _type('h6', defineHeader(6), $lineBody),
   _type('h5', defineHeader(5), $lineBody),
@@ -139,7 +161,7 @@ const $line = _or(
   _type('h1', defineHeader(1), $lineBody),
   _type('line', $lineBody),
 )
-const $lines = _separate_(_or($list, $orderList, $line), _plus($newline))
+const $lines = _separate_(_or($table, $list, $orderList, $line), _plus($newline))
 const $markdown = $lines
 
 export default $markdown
