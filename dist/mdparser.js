@@ -435,10 +435,10 @@ var mdparser = (function () {
     return $ctx(range, $op, $texts, $ed)
   };
 
-  const defineTableLine = (type, $content) => {
+  const defineTableLine = ($content) => {
     const range = '|';
     const $op = $phantom($vert);
-    const $range = $ctx(range, _separate_($op, _type(type, $content)));
+    const $range = $ctx(range, _separate_($op, $content));
     return $out(range, $range)
   };
 
@@ -509,15 +509,20 @@ var mdparser = (function () {
   const $orderItem = _type('oli', $glob($number, $dot, $white), $lineBody);
   const $orderList = _type('ol', _separate_($orderItem, _plus($newline)));
 
-  const $split = _seq($white, _plus($dash), $white);
-  const $tableSplit = $glob(defineTableLine('split', $split));
-  const $thRow = _type('tr', defineTableLine('th', $lineBody));
-  const $tdRow = _type('tr', defineTableLine('td', $lineBody));
+  const $th = _type('th', $lineBody);
+  const $td = _type('td', $lineBody);
+  const $defaultSplit = _type('split-default', _seq($white, _plus($dash), $white));
+  const $split = _or(
+    $defaultSplit,
+  );
+
+  const $thRow = _type('tr', defineTableLine($th));
+  const $tdRow = _type('tr', defineTableLine($td));
+  const $splitRow = $glob(_type('sr', defineTableLine($split)));
+
   const $table = _type('table', 
-    $thRow,
-    $newline,
-    $tableSplit, 
-    $newline,
+    $thRow, $newline,
+    $splitRow, $newline,
     _all(_separate_($tdRow, $newline)),
   );
 
