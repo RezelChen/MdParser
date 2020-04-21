@@ -4,7 +4,7 @@ import {
 } from './combinator'
 import { isNewline, isWhitespace, isToken, isNumber } from './structs'
 
-const $newline = $pred(isNewline)
+const $newline = $phantom($pred(isNewline))
 const $whitespace = $pred(isWhitespace)
 const $tok = $pred(isToken)
 const $number = $pred(isNumber)
@@ -157,7 +157,7 @@ const $split = _seq($white, $splitOp, $white)
 
 const $thRow = _type('tr', defineTableLine($th))
 const $tdRow = _type('tr', defineTableLine($td))
-const $splitRow = $glob(_type('sr', defineTableLine($split)))
+const $splitRow = _type('sr', defineTableLine($split))
 
 const $table = _type('table', 
   $thRow, $newline,

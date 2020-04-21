@@ -338,15 +338,40 @@ const HTMLIZE_MAP = {
   'oli': (str) => `<li>${str}</li>`,
   'ol': (str) => `<ol>${str}</ol>`,
   'table': (str) => `<table>${str}</table>`,
-  'th': (str) => `<th>${str}</th>`,
   'tr': (str) => `<tr>${str}</tr>`,
-  'td': (str) => `<td>${str}</td>`,
+  'th': (str, attrs) => `<th ${attrs}>${str}</th>`,
+  'td': (str, attrs) => `<td ${attrs}>${str}</td>`,
   'quote': (str) => `<blockquote>${str}</blockquote>`,
 };
 
 const htmlizeList = (elts) => {
   if (Array.isArray(elts)) { return elts.map(htmlize).reduce((a, b) => a + b, '') }
   else { return elts }
+};
+
+const getSplitAlign = (node) => {
+  switch (node.type) {
+    case 'split-center': return 'center'
+    case 'split-left': return 'left'
+    case 'split-right': return 'right'
+    default: return null
+  }
+};
+
+const htmlizeWihtAlign = (node, align) => {
+  const attrs = align ? `align=${align}` : '';
+  // almost the same as default in htmlize
+  const inner = htmlizeList(node.elts);
+  const fn = HTMLIZE_MAP[node.type];
+  if (!fn) { return inner }
+  else { return fn(inner, attrs) }
+};
+
+const htmlizeTr = (tr, aligns) => {
+  const inner = tr.elts
+    .map((node, i) => htmlizeWihtAlign(node, aligns[i]))
+    .reduce((a, b) => a + b, '');
+  return `<tr>${inner}</tr>`
 };
 
 const htmlize = (node) => {
@@ -364,6 +389,14 @@ const htmlize = (node) => {
       const urlInner = htmlizeList(url.elts);
       return `<a href="${urlInner}">${titleInner}</a>`
     }
+    case 'table': {
+      const [tr, sr, ...trs] = node.elts;
+      const aligns = sr.elts.map(getSplitAlign);
+      const thRow = htmlizeTr(tr, aligns);
+      const tdRows = trs.map((tr) => htmlizeTr(tr, aligns));
+      const inner = [thRow, ...tdRows].reduce((a, b) => a + b, '');
+      return `<table>${inner}</table>`
+    }
     default: {
       const inner = htmlizeList(node.elts);
       const fn = HTMLIZE_MAP[node.type];
@@ -373,7 +406,7 @@ const htmlize = (node) => {
   }
 };
 
-const $newline = $pred(isNewline);
+const $newline = $phantom($pred(isNewline));
 const $whitespace = $pred(isWhitespace);
 const $tok = $pred(isToken);
 const $number = $pred(isNumber);
@@ -526,7 +559,7 @@ const $split = _seq($white, $splitOp, $white);
 
 const $thRow = _type('tr', defineTableLine($th));
 const $tdRow = _type('tr', defineTableLine($td));
-const $splitRow = $glob(_type('sr', defineTableLine($split)));
+const $splitRow = _type('sr', defineTableLine($split));
 
 const $table = _type('table', 
   $thRow, $newline,
