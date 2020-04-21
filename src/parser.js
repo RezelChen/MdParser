@@ -135,7 +135,7 @@ const $exp = _or(
 
 const $exps = _separate_($exp, $white)
 const $lineBody = _seq($white, _maybe($exps, $white))
-const $item = _type('item', $glob($itemOp, $white), $lineBody)
+const $item = _type('item', $glob($itemOp, $whitespace), $lineBody)
 const $list = _type('list', _separate_($item, _plus($newline)))
 const $orderItem = _type('oli', $glob($number, $dot, $white), $lineBody)
 const $orderList = _type('ol', _separate_($orderItem, _plus($newline)))
