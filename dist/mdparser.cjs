@@ -26,7 +26,11 @@ const isNumber = (node) => {
 const EOF = 'EOF';
 const NEWLINES = ['\n'];
 const WHITESPACES = [' '];
-const DELIMS = ['*', '_', '~', '+', '#', '[', ']', '(', ')', '!', '-', '.', '|', '>'];
+const DELIMS = [
+  '*', '_', '~', '+', '#',
+  '!', '-', '.', '|', '>', ':',
+  '[', ']', '(', ')',
+];
 
 const startWith = (s, start, prefix) => {
   const len = prefix.length;
@@ -389,6 +393,7 @@ const $rightBracket = $$(']');
 const $dot = $$('.');
 const $vert = $$('|');
 const $arrow = $$('>');
+const $colon = $$(':');
 
 const $symbol = _or(
   $out('~', $out('~~', $tilde)),
@@ -405,6 +410,7 @@ const $symbol = _or(
   $exclam,
   $dot,
   $arrow,
+  $colon,
 );
 
 const $strikeOp = _seq($tilde, $tilde);
@@ -510,10 +516,13 @@ const $orderList = _type('ol', _separate_($orderItem, _plus($newline)));
 
 const $th = _type('th', $lineBody);
 const $td = _type('td', $lineBody);
-const $defaultSplit = _type('split-default', _seq($white, _plus($dash), $white));
-const $split = _or(
-  $defaultSplit,
+const $splitOp = _or(
+  _type('split-center', $colon, _plus($dash), $colon),
+  _type('split-left', $colon, _plus($dash)),
+  _type('split-right', _plus($dash), $colon),
+  _type('split-default', _plus($dash)),
 );
+const $split = _seq($white, $splitOp, $white);
 
 const $thRow = _type('tr', defineTableLine($th));
 const $tdRow = _type('tr', defineTableLine($td));
