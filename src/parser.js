@@ -23,6 +23,7 @@ const $leftBracket = $$('[')
 const $rightBracket = $$(']')
 const $dot = $$('.')
 const $vert = $$('|')
+const $arrow = $$('>')
 
 const $symbol = _or(
   $out('~', $out('~~', $tilde)),
@@ -38,6 +39,7 @@ const $symbol = _or(
   $sharp,
   $exclam,
   $dot,
+  $arrow,
 )
 
 const $strikeOp = _seq($tilde, $tilde)
@@ -135,8 +137,9 @@ const $exp = _or(
 
 const $exps = _separate_($exp, $white)
 const $lineBody = _seq($white, _maybe($exps, $white))
-const $item = _type('item', $glob($itemOp, $whitespace), $lineBody)
+const $item = _type('item', $glob($itemOp, _plus($whitespace)), $lineBody)
 const $list = _type('list', _separate_($item, _plus($newline)))
+const $quote = _type('quote', $phantom($arrow, $white), $lineBody)
 const $orderItem = _type('oli', $glob($number, $dot, $white), $lineBody)
 const $orderList = _type('ol', _separate_($orderItem, _plus($newline)))
 
@@ -161,7 +164,7 @@ const $line = _or(
   _type('h1', defineHeader(1), $lineBody),
   _type('line', $lineBody),
 )
-const $lines = _separate_(_or($table, $list, $orderList, $line), _plus($newline))
+const $lines = _separate_(_or($table, $list, $orderList, $quote, $line), _plus($newline))
 const $markdown = $lines
 
 export default $markdown

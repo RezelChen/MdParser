@@ -60,6 +60,7 @@ const TEST_CASES = [
   '# hello',
   '- hello',
   '1. hello',
+  '> hello',
 ]
 
 TEST_CASES.forEach((str) => {
