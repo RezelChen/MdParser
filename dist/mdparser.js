@@ -29,7 +29,7 @@ var mdparser = (function () {
   const WHITESPACES = [' '];
   const DELIMS = [
     '*', '_', '~', '+', '#',
-    '!', '-', '.', '|', '>', ':',
+    '!', '-', '.', '|', '>', ':', '`',
     '[', ']', '(', ')',
   ];
 
@@ -343,6 +343,7 @@ var mdparser = (function () {
     'th': (str, attrs) => `<th ${attrs}>${str}</th>`,
     'td': (str, attrs) => `<td ${attrs}>${str}</td>`,
     'quote': (str) => `<blockquote>${str}</blockquote>`,
+    'code': (str) => `<code>${str}</code>`,
   };
 
   const htmlizeList = (elts) => {
@@ -428,6 +429,7 @@ var mdparser = (function () {
   const $vert = $$('|');
   const $arrow = $$('>');
   const $colon = $$(':');
+  const $backquote = $$('`');
 
   const $symbol = _or(
     $out('~', $out('~~', $tilde)),
@@ -439,6 +441,7 @@ var mdparser = (function () {
     $out('[', $leftBracket),
     $out(']', $rightBracket),
     $out('|', $vert),
+    $out('`', $backquote),
     $dash,
     $sharp,
     $exclam,
@@ -458,6 +461,14 @@ var mdparser = (function () {
     $op = $phantom($op);
     // define a range in here
     const $range = $ctx(range, $op, $exps, $op);
+    // use $out here to avoid recursive call
+    return $out(range, $range)
+  };
+
+  const defineRange2 = (range, $op) => {
+    $op = $phantom($op);
+    // define a range in here
+    const $range = $ctx(range, $op, $texts, $op);
     // use $out here to avoid recursive call
     return $out(range, $range)
   };
@@ -527,6 +538,7 @@ var mdparser = (function () {
   );
 
   const $texts = _separate_($text, $white);
+  const $code = _type('code', defineRange2('`', $backquote));
 
   const $link = _type('link', $title, $url);
   const $img = _type('img', $phantom($exclam), $title, $url);
@@ -535,6 +547,7 @@ var mdparser = (function () {
     $underline,
     $strong,
     $emphasis,
+    $code,
     $img,
     $link,
     $text,

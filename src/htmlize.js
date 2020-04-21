@@ -21,6 +21,7 @@ const HTMLIZE_MAP = {
   'th': (str, attrs) => `<th ${attrs}>${str}</th>`,
   'td': (str, attrs) => `<td ${attrs}>${str}</td>`,
   'quote': (str) => `<blockquote>${str}</blockquote>`,
+  'code': (str) => `<code>${str}</code>`,
 }
 
 const htmlizeList = (elts) => {

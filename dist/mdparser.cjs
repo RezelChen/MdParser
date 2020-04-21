@@ -28,7 +28,7 @@ const NEWLINES = ['\n'];
 const WHITESPACES = [' '];
 const DELIMS = [
   '*', '_', '~', '+', '#',
-  '!', '-', '.', '|', '>', ':',
+  '!', '-', '.', '|', '>', ':', '`',
   '[', ']', '(', ')',
 ];
 
@@ -342,6 +342,7 @@ const HTMLIZE_MAP = {
   'th': (str, attrs) => `<th ${attrs}>${str}</th>`,
   'td': (str, attrs) => `<td ${attrs}>${str}</td>`,
   'quote': (str) => `<blockquote>${str}</blockquote>`,
+  'code': (str) => `<code>${str}</code>`,
 };
 
 const htmlizeList = (elts) => {
@@ -427,6 +428,7 @@ const $dot = $$('.');
 const $vert = $$('|');
 const $arrow = $$('>');
 const $colon = $$(':');
+const $backquote = $$('`');
 
 const $symbol = _or(
   $out('~', $out('~~', $tilde)),
@@ -438,6 +440,7 @@ const $symbol = _or(
   $out('[', $leftBracket),
   $out(']', $rightBracket),
   $out('|', $vert),
+  $out('`', $backquote),
   $dash,
   $sharp,
   $exclam,
@@ -457,6 +460,14 @@ const defineRange = (range, $op) => {
   $op = $phantom($op);
   // define a range in here
   const $range = $ctx(range, $op, $exps, $op);
+  // use $out here to avoid recursive call
+  return $out(range, $range)
+};
+
+const defineRange2 = (range, $op) => {
+  $op = $phantom($op);
+  // define a range in here
+  const $range = $ctx(range, $op, $texts, $op);
   // use $out here to avoid recursive call
   return $out(range, $range)
 };
@@ -526,6 +537,7 @@ const $text = _or(
 );
 
 const $texts = _separate_($text, $white);
+const $code = _type('code', defineRange2('`', $backquote));
 
 const $link = _type('link', $title, $url);
 const $img = _type('img', $phantom($exclam), $title, $url);
@@ -534,6 +546,7 @@ const $exp = _or(
   $underline,
   $strong,
   $emphasis,
+  $code,
   $img,
   $link,
   $text,
