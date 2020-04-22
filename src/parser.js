@@ -54,40 +54,12 @@ const $itemOp = _or($star, $plus, $dash)
 const $headOp = $sharp
 const $codeOp = _seq($backQuote, $backQuote, $backQuote)
 
-const defineRange = (range, $op) => {
+const defineRange = (range, $op, $content) => {
   $op = $phantom($op)
   // define a range in here
-  const $range = $ctx(range, $op, $exps, $op)
+  const $range = $ctx(range, $op, $content, $op)
   // use $out here to avoid recursive call
   return $out(range, $range)
-}
-
-const defineRange3 = (range, $op) => {
-  $op = $phantom($op)
-  // define a range in here
-  const $range = $ctx(range, $op, $textBlock, $op)
-  // use $out here to avoid recursive call
-  return $out(range, $range)
-}
-
-const defineRange2 = (range, $op) => {
-  $op = $phantom($op)
-  // define a range in here
-  const $range = $ctx(range, $op, $texts, $op)
-  // use $out here to avoid recursive call
-  return $out(range, $range)
-}
-
-const defineRange1 = (range, $op, $ed) => {
-  $op = $phantom($op)
-  $ed = $phantom($ed)
-  return $ctx(range, $op, $exps, $ed)
-}
-
-const defineRange0 = (range, $op, $ed) => {
-  $op = $phantom($op)
-  $ed = $phantom($ed)
-  return $ctx(range, $op, $texts, $ed)
 }
 
 const defineTableLine = ($content) => {
@@ -104,34 +76,38 @@ const defineHeader = (layer) => {
 }
 
 const $strike = (toks, ctx) => {
-  const parser = _type('strike', defineRange('~~', $strikeOp))
+  const parser = _type('strike', defineRange('~~', $strikeOp, $exps))
   return parser(toks, ctx)
 }
 
 const $underline = (toks, ctx) => {
-  const parser = _type('underline', defineRange('++', $underlineOp))
+  const parser = _type('underline', defineRange('++', $underlineOp, $exps))
   return parser(toks, ctx)
 }
 
 const $strong = (toks, ctx) => {
-  const p1 = _type('strong', defineRange('**', $strongOp1))
-  const p2 = _type('strong', defineRange('__', $strongOp2))
+  const p1 = _type('strong', defineRange('**', $strongOp1, $exps))
+  const p2 = _type('strong', defineRange('__', $strongOp2, $exps))
   return _or(p1, p2)(toks, ctx)
 }
 
 const $emphasis = (toks, ctx) => {
-  const p1 = _type('emphasis', defineRange('*', $star))
-  const p2 = _type('emphasis', defineRange('_', $under))
+  const p1 = _type('emphasis', defineRange('*', $star, $exps))
+  const p2 = _type('emphasis', defineRange('_', $under, $exps))
   return _or(p1, p2)(toks, ctx)
 }
 
 const $title = (toks, ctx) => {
-  const p = _type('title', defineRange1(']', $leftBracket, $rightBracket))
+  const $op = $phantom($leftBracket)
+  const $ed = $phantom($rightBracket)
+  const p = _type('title', $ctx(']', $op, $exps, $ed))
   return p(toks, ctx)
 }
 
 const $url = (toks, ctx) => {
-  const p = _type('url', defineRange0(')', $leftParentheses, $rightParentheses))
+  const $op = $phantom($leftParentheses)
+  const $ed = $phantom($rightParentheses)
+  const p = _type('url', $ctx(']', $op, $texts, $ed))
   return p(toks, ctx)
 }
 
@@ -150,8 +126,8 @@ const $textBlock = _seq(
   _separate_($textLine, $newlineTok),
 )
 
-const $code = _type('code', defineRange2('`', $backQuote))
-const $codeBlock = _type('code-block', defineRange3('```', $codeOp))
+const $code = _type('code', defineRange('`', $backQuote, $texts))
+const $codeBlock = _type('code-block', defineRange('```', $codeOp, $textBlock))
 
 const $link = _type('link', $title, $url)
 const $img = _type('img', $phantom($exclam), $title, $url)
