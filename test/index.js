@@ -61,7 +61,10 @@ const TEST_CASES = [
   '- hello',
   '1. hello',
   '> hello',
-  '`npm install`'
+  '`npm install`',
+  `\`\`\`
+hello
+\`\`\``,
 ]
 
 TEST_CASES.forEach((str) => {

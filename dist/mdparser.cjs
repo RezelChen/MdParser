@@ -343,6 +343,7 @@ const HTMLIZE_MAP = {
   'td': (str, attrs) => `<td ${attrs}>${str}</td>`,
   'quote': (str) => `<blockquote>${str}</blockquote>`,
   'code': (str) => `<code>${str}</code>`,
+  'code-block': (str) => `<pre><code>${str}</code></pre>`,
 };
 
 const htmlizeList = (elts) => {
@@ -428,9 +429,10 @@ const $dot = $$('.');
 const $vert = $$('|');
 const $arrow = $$('>');
 const $colon = $$(':');
-const $backquote = $$('`');
+const $backQuote = $$('`');
 
 const $symbol = _or(
+  $out('`', $out('```', $backQuote)),
   $out('~', $out('~~', $tilde)),
   $out('*', $out('**', $star)),
   $out('+', $out('++', $plus)),
@@ -440,7 +442,6 @@ const $symbol = _or(
   $out('[', $leftBracket),
   $out(']', $rightBracket),
   $out('|', $vert),
-  $out('`', $backquote),
   $dash,
   $sharp,
   $exclam,
@@ -455,11 +456,20 @@ const $strongOp1 = _seq($star, $star);
 const $strongOp2 = _seq($under, $under);
 const $itemOp = _or($star, $plus, $dash);
 const $headOp = $sharp;
+const $codeOp = _seq($backQuote, $backQuote, $backQuote);
 
 const defineRange = (range, $op) => {
   $op = $phantom($op);
   // define a range in here
   const $range = $ctx(range, $op, $exps, $op);
+  // use $out here to avoid recursive call
+  return $out(range, $range)
+};
+
+const defineRange3 = (range, $op) => {
+  $op = $phantom($op);
+  // define a range in here
+  const $range = $ctx(range, $op, $textBlock, $op);
   // use $out here to avoid recursive call
   return $out(range, $range)
 };
@@ -537,7 +547,15 @@ const $text = _or(
 );
 
 const $texts = _separate_($text, $white);
-const $code = _type('code', defineRange2('`', $backquote));
+const $textLine = _seq($white, _maybe($texts, $white));
+const $newlineTok = $pred(isNewline);
+const $textBlock = _seq(
+  $glob($textLine), $newline,
+  _separate_($textLine, $newlineTok),
+);
+
+const $code = _type('code', defineRange2('`', $backQuote));
+const $codeBlock = _type('code-block', defineRange3('```', $codeOp));
 
 const $link = _type('link', $title, $url);
 const $img = _type('img', $phantom($exclam), $title, $url);
@@ -589,7 +607,7 @@ const $line = _or(
   _type('h1', defineHeader(1), $lineBody),
   _type('line', $lineBody),
 );
-const $lines = _separate_(_or($table, $list, $orderList, $quote, $line), _plus($newline));
+const $lines = _separate_(_or($codeBlock, $table, $list, $orderList, $quote, $line), _plus($newline));
 const $markdown = $lines;
 
 var index = (str) => {
