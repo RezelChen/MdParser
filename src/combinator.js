@@ -3,8 +3,7 @@ import { Node, isPhantom } from './structs'
 import { isNull, car, cdr, merge, last, cons, includes } from './utils'
 
 const applyCheck = (p, toks, ctx) => {
-  const a = p(toks, ctx)
-  return a
+  return p(toks, ctx)
 }
 
 export const _seq = (...ps) => {
@@ -186,12 +185,6 @@ export const _separate_ = (p, sep) => {
   return _seq(p, _all(sep, p))
 }
 
-export const $eval = (p, str) => {
-  const toks = scan(str)
-  const [t] = p(toks, [])
-  return t
-}
-
 export const $ctx = (c, ...ps) => {
   const parser = _seqP(...ps)
   return (toks, ctx) => parser(toks, cons(c, ctx))
@@ -203,4 +196,35 @@ export const $out = (c, ...ps) => {
     if (includes(ctx, c)) { return [false, false] }
     else { return parser(toks, ctx) }
   }
+}
+
+let MEMORY = {}
+// poor hash
+const hash = (name, toks, ctx) => {
+  const hashArr = [name]
+  if (toks.length !== 0) {
+    hashArr.push(toks[0].start)
+    hashArr.push(toks[toks.length-1].end)
+  }
+  hashArr.push(ctx.join(':'))
+  return hashArr.join('-')
+}
+export const de = (() => {
+  let count = 0
+  return (parser) => {
+    count++
+    const name = count
+    return (toks, ctx) => {
+      const h = hash(name, toks, ctx)
+      if (!MEMORY[h]) { MEMORY[h] = parser(toks, ctx) }
+      return MEMORY[h]
+    }
+  }
+})()
+
+export const $eval = (p, str) => {
+  const toks = scan(str)
+  const [t] = p(toks, [])
+  MEMORY = {}
+  return t
 }

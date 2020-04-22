@@ -151,8 +151,7 @@ const last = (arr) => {
 const includes = (arr, item) => arr.includes(item);
 
 const applyCheck = (p, toks, ctx) => {
-  const a = p(toks, ctx);
-  return a
+  return p(toks, ctx)
 };
 
 const _seq = (...ps) => {
@@ -300,12 +299,6 @@ const _separate_ = (p, sep) => {
   return _seq(p, _all(sep, p))
 };
 
-const $eval = (p, str) => {
-  const toks = scan(str);
-  const [t] = p(toks, []);
-  return t
-};
-
 const $ctx = (c, ...ps) => {
   const parser = _seqP(...ps);
   return (toks, ctx) => parser(toks, cons(c, ctx))
@@ -317,6 +310,12 @@ const $out = (c, ...ps) => {
     if (includes(ctx, c)) { return [false, false] }
     else { return parser(toks, ctx) }
   }
+};
+
+const $eval = (p, str) => {
+  const toks = scan(str);
+  const [t] = p(toks, []);
+  return t
 };
 
 const HTMLIZE_MAP = {

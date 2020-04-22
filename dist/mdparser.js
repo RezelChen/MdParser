@@ -152,8 +152,7 @@ var mdparser = (function () {
   const includes = (arr, item) => arr.includes(item);
 
   const applyCheck = (p, toks, ctx) => {
-    const a = p(toks, ctx);
-    return a
+    return p(toks, ctx)
   };
 
   const _seq = (...ps) => {
@@ -301,12 +300,6 @@ var mdparser = (function () {
     return _seq(p, _all(sep, p))
   };
 
-  const $eval = (p, str) => {
-    const toks = scan(str);
-    const [t] = p(toks, []);
-    return t
-  };
-
   const $ctx = (c, ...ps) => {
     const parser = _seqP(...ps);
     return (toks, ctx) => parser(toks, cons(c, ctx))
@@ -318,6 +311,12 @@ var mdparser = (function () {
       if (includes(ctx, c)) { return [false, false] }
       else { return parser(toks, ctx) }
     }
+  };
+
+  const $eval = (p, str) => {
+    const toks = scan(str);
+    const [t] = p(toks, []);
+    return t
   };
 
   const HTMLIZE_MAP = {
