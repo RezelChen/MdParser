@@ -466,42 +466,6 @@ const defineRange = (range, $op, $content) => {
   return $out(range, $range)
 };
 
-// const defineRange = (range, $op) => {
-//   $op = $phantom($op)
-//   // define a range in here
-//   const $range = $ctx(range, $op, $exps, $op)
-//   // use $out here to avoid recursive call
-//   return $out(range, $range)
-// }
-
-// const defineRange3 = (range, $op) => {
-//   $op = $phantom($op)
-//   // define a range in here
-//   const $range = $ctx(range, $op, $textBlock, $op)
-//   // use $out here to avoid recursive call
-//   return $out(range, $range)
-// }
-
-// const defineRange2 = (range, $op) => {
-//   $op = $phantom($op)
-//   // define a range in here
-//   const $range = $ctx(range, $op, $texts, $op)
-//   // use $out here to avoid recursive call
-//   return $out(range, $range)
-// }
-
-// const defineRange1 = (range, $op, $ed) => {
-//   $op = $phantom($op)
-//   $ed = $phantom($ed)
-//   return $ctx(range, $op, $exps, $ed)
-// }
-
-// const defineRange0 = (range, $op, $ed) => {
-//   $op = $phantom($op)
-//   $ed = $phantom($ed)
-//   return $ctx(range, $op, $texts, $ed)
-// }
-
 const defineTableLine = ($content) => {
   const range = '|';
   const $op = $phantom($vert);
@@ -541,15 +505,13 @@ const $title = (toks, ctx) => {
   const $op = $phantom($leftBracket);
   const $ed = $phantom($rightBracket);
   const p = _type('title', $ctx(']', $op, $exps, $ed));
-  // const p = _type('title', defineRange1(']', $leftBracket, $rightBracket))
   return p(toks, ctx)
 };
 
 const $url = (toks, ctx) => {
   const $op = $phantom($leftParentheses);
   const $ed = $phantom($rightParentheses);
-  const p = _type('url', $ctx(']', $op, $texts, $ed));
-  // const p = _type('url', defineRange0(')', $leftParentheses, $rightParentheses))
+  const p = _type('url', $ctx(')', $op, $texts, $ed));
   return p(toks, ctx)
 };
 

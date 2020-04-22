@@ -107,7 +107,7 @@ const $title = (toks, ctx) => {
 const $url = (toks, ctx) => {
   const $op = $phantom($leftParentheses)
   const $ed = $phantom($rightParentheses)
-  const p = _type('url', $ctx(']', $op, $texts, $ed))
+  const p = _type('url', $ctx(')', $op, $texts, $ed))
   return p(toks, ctx)
 }
 
