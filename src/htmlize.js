@@ -25,9 +25,12 @@ const HTMLIZE_MAP = {
   'code-block': (str) => `<pre><code>${str}</code></pre>`,
 }
 
+const REG = /[<>&"]/g
+const REPLACE = {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}
+const escape = (str) => str.replace(REG, (c) => REPLACE[c])
 const htmlizeList = (elts) => {
   if (Array.isArray(elts)) { return elts.map(htmlize).reduce((a, b) => a + b, '') }
-  else { return elts }
+  else { return escape(elts) }
 }
 
 const getSplitAlign = (node) => {
@@ -39,7 +42,7 @@ const getSplitAlign = (node) => {
   }
 }
 
-const htmlizeWihtAlign = (node, align) => {
+const htmlizeWithAlign = (node, align) => {
   const attrs = align ? `align=${align}` : ''
   // almost the same as default in htmlize
   const inner = htmlizeList(node.elts)
@@ -50,7 +53,7 @@ const htmlizeWihtAlign = (node, align) => {
 
 const htmlizeTr = (tr, aligns) => {
   const inner = tr.elts
-    .map((node, i) => htmlizeWihtAlign(node, aligns[i]))
+    .map((node, i) => htmlizeWithAlign(node, aligns[i]))
     .reduce((a, b) => a + b, '')
   return `<tr>${inner}</tr>`
 }
@@ -62,7 +65,7 @@ const htmlize = (node) => {
       const [title, url] = node.elts
       const titleInner = htmlizeList(title.elts)
       const urlInner = htmlizeList(url.elts)
-      return `<image src="${urlInner}" title="${titleInner}" style="width: 50%" />`
+      return `<img src="${urlInner}" title="${titleInner}" style="max-width: 100%" />`
     }
     case 'link': {
       const [title, url] = node.elts
