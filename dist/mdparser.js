@@ -511,7 +511,14 @@ var mdparser = (function () {
     return p(toks, ctx)
   };
 
-  const $url = (toks, ctx) => {
+  const $url0 = (toks, ctx) => {
+    const $op = $phantom($leftParentheses);
+    const $ed = $phantom($rightParentheses);
+    const p = _type('url', $ctx(')', $op, $exps, $ed));
+    return p(toks, ctx)
+  };
+
+  const $url1 = (toks, ctx) => {
     const $op = $phantom($leftParentheses);
     const $ed = $phantom($rightParentheses);
     const p = _type('url', $ctx(')', $op, $texts, $ed));
@@ -519,7 +526,7 @@ var mdparser = (function () {
   };
 
   const $text = _or(
-    $url,
+    $url1,
     $title,
     $tok,
     $symbol,
@@ -536,8 +543,8 @@ var mdparser = (function () {
   const $code = _type('code', defineRange('`', $backQuote, $texts));
   const $codeBlock = _type('code-block', defineRange('```', $codeOp, $textBlock));
 
-  const $link = _type('link', $title, $url);
-  const $img = _type('img', $phantom($exclam), $title, $url);
+  const $link = _type('link', $title, $url1);
+  const $img = _type('img', $phantom($exclam), $title, $url1);
   const $exp = _or(
     $strike,
     $underline,
@@ -546,6 +553,7 @@ var mdparser = (function () {
     $code,
     $img,
     $link,
+    $url0,
     $text,
   );
 
