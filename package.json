@@ -18,6 +18,6 @@
   },
   "homepage": "https://github.com/RezelChen/MdParser#readme",
   "devDependencies": {
-    "rollup": "^2.2.0"
+    "rollup": "^3.29.5"
   }
 }
